@@ -1,6 +1,5 @@
 //this module is to render my own map objects on amap canvas.
-
-module.exports = {}
+import amapKey from '.js/nogit'
 //export named functions;
 var MmText = function () {};
 

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Micromap</title>
+    <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>
+    <script src="http://cache.amap.com/lbs/static/es5.min.js"></script>
+    <script type="text/javascript" src="http://cache.amap.com/lbs/static/addToolbar.js"></script>
+    <script type="text/javascript" src="http://webapi.amap.com/maps?v=1.3&key={{amapKey}}"></script>
+</head>
+<body>
+<div id="container"></div>
+</body>
+<script>
+    var map = new AMap.Map('container', {
+    resizeEnable: true,
+    zoom:11,
+    center: [116.397428, 39.90923]
+
+});
+
+</script>
+</html>
