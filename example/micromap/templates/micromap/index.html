@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+{% load static %}
 <head>
     <meta charset="UTF-8">
     <title>Micromap</title>
@@ -10,14 +11,18 @@
 </head>
 <body>
 <div id="container"></div>
+<div id="tip">可以缩放地图，得到缩放级别哦！<br><span id="info"></span>
+  <input id="lnglat"></input>
+</div>
 </body>
 <script>
     var map = new AMap.Map('container', {
     resizeEnable: true,
-    zoom:11,
-    center: [116.397428, 39.90923]
+    zoom:17,
+    center: [113.945689, 22.52951]
 
 });
 
 </script>
+<script src="{% static "micromap/app.js" %}"></script>
 </html>
