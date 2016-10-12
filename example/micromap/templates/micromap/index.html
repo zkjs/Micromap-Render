@@ -23,6 +23,11 @@
 
 });
 
+var objArray = new Array();
+{% for obj in objects %}
+objArray.push({'type':'{{obj.type}}', 'lnglat':{{obj.lnglat}}});
+{% endfor %}
+
 </script>
 <script src="{% static "micromap/app.js" %}"></script>
 </html>
