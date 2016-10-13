@@ -19,13 +19,17 @@
     var map = new AMap.Map('container', {
     resizeEnable: true,
     zoom:17,
-    center: [113.945689, 22.52951]
+    center: [113.95954, 22.52952]
 
 });
 
 var objArray = new Array();
 {% for obj in objects %}
-objArray.push({'type':'{{obj.type}}', 'lnglat':{{obj.lnglat}}});
+{% if obj.type == 'Polygon' %}
+objArray.push({'type':'{{obj.type}}', 'lnglat':{{obj.lnglat}}, 'path': {{obj.path}} })
+{% else %}
+objArray.push({'type':'{{obj.type}}', 'lnglat':{{obj.lnglat}}, 'text':'{{obj.text}}'});
+{% endif %}
 {% endfor %}
 
 </script>
