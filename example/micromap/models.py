@@ -1,3 +1,4 @@
+#-*- encoding: utf-8 -*-
 from __future__ import unicode_literals
 
 from django.db import models
@@ -17,14 +18,19 @@ class Organization(Document):
 class MmapObj(Document):
     lnglat = GeoPointField(required=True)
     name = StringField(max_length=100, required=True)
-    owner = ReferenceField(Organization)  #linked to organization model
+    owner = ReferenceField('Organization')  #linked to organization model
     visible = BooleanField(default=True)
     address = StringField(max_length=100)
     level = IntField(default=0)  #root level = 0
     parent = ReferenceField('self') #self netted relationships
-    draw = ListField(ReferenceField(Drawable))  #One-To-Many relationships
+    draw = ListField(ReferenceField('Drawable'))  #One-To-Many relationships
+    hasfloors = IntField(default=1) # 有几层
+    infloors = IntField(default=1) # 位于几层
+
 
 class Drawable(DynamicDocument):
     type = StringField(required=True, max_length=20)
     lnglat = GeoPointField(required=True)
+    mmapobj = ReferenceField('MmapObj', reverse_delete_rule=mongoengine.CASCADE)
+
 
