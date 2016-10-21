@@ -27,3 +27,13 @@ def index(request):
     #here objects append some, text, icon, polyline, polygon, etc
     return render(request, 'micromap/index.html', {'amapKey': amapKey,
         'objects':objects})
+
+class Dashboard(View):
+    #the view to manipulation of root objs list.
+    def get(self, request):
+
+        return render(request, 'micromap/admin.html')
+
+    def post(self, request):
+        #for modified a root objects;
+        return
