@@ -1,11 +1,12 @@
 #-*- coding: utf-8 -*-
 from django.shortcuts import render
+from django.views import View
 
 # Create your views here.
 from django.http import HttpResponse
 from django.shortcuts import render
 # from django views import View
-
+from .models import MmapObj, Drawable
 
 amapKey = 'f7ac40ee5f12833a51b9ef058600b330'
 
@@ -31,9 +32,20 @@ def index(request):
 class Dashboard(View):
     #the view to manipulation of root objs list.
     def get(self, request):
-
+        rootobjs = MmapObj.objects.find
         return render(request, 'micromap/admin.html')
 
     def post(self, request):
         #for modified a root objects;
-        return
+        return render(request, 'micromap/admin.html')
+
+class ObjManage(View):
+    #for other obj, only API
+    def post(self, request):
+        #manage a auto-filled form
+        return {'result': True}
+
+class DrawManage(View):
+    #view for draw add;s
+    def post(self, request):
+        return {'result': True}
