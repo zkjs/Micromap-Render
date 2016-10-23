@@ -47,5 +47,14 @@ class ObjManage(View):
 
 class DrawManage(View):
     #view for draw add;s
+    def get(self, request):
+        #acquire the obj and filter all drawables to pass to front end in {{objects}}
+        mmapobj = MmapObj.find() #TODO: syntax to query in mongoengine
+        objects = []
+        sum = 0
+        res = Drawable.objects.find()   #syntax to find drawable for this mmapobj.
+        return render(request, 'micromap/admin.html', {'objects': objects, 'sum': sum})
+
+
     def post(self, request):
         return {'result': True}
