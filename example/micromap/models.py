@@ -13,24 +13,27 @@ class Organization(Document):
     date_modified = DateTimeField(default=datetime.datetime.now)
     level = IntField(default=0) # represent levels, 0 is root level
     parent = ReferenceField('self') #self linked, has only one parent
-
+    # meta = {'collections': 'mapOrgization'}
+    # insert a default organization;
 
 class MmapObj(Document):
     lnglat = GeoPointField(required=True)
     name = StringField(max_length=100, required=True)
-    owner = ReferenceField('Organization')  #linked to organization model
+    owner = ReferenceField('Organization', required=False)  #linked to organization model
     visible = BooleanField(default=True)
     address = StringField(max_length=100)
     level = IntField(default=0)  #root level = 0
     parent = ReferenceField('self') #self netted relationships
-    draw = ListField(ReferenceField('Drawable'))  #One-To-Many relationships
+    draw = ListField(ReferenceField('Drawable'), required=False)  #One-To-Many relationships# not necessary for defined ref in drawables
     hasfloors = IntField(default=1) # 有几层
     infloors = IntField(default=1) # 位于几层
-
+    created = DateTimeField()
+    modified = DateTimeField(default=datetime.datetime.now)
+    # default ognization = xxxx
 
 class Drawable(DynamicDocument):
     type = StringField(required=True, max_length=20)
     lnglat = GeoPointField(required=True)
-    mmapobj = ReferenceField('MmapObj', reverse_delete_rule=mongoengine.CASCADE)
+    mmapobj = ReferenceField('MmapObj') #should not reverse delete
 
 

@@ -7,6 +7,8 @@ from django.http import HttpResponse
 from django.shortcuts import render
 # from django views import View
 from .models import MmapObj, Drawable
+from bson import ObjectId
+from .forms import AddMobjForm
 
 amapKey = 'f7ac40ee5f12833a51b9ef058600b330'
 
@@ -29,9 +31,22 @@ def index(request):
     return render(request, 'micromap/index.html', {'amapKey': amapKey,
         'objects':objects})
 
+def dash(request, obj_id=None):
+    try:
+        if obj_id == None:
+            root_obj = MmapObj.objects.last()
+        else:
+            root_obj = MmapObj.objects(pk=ObjectId(obj_id))
+    except:
+        root_obj = None
+
+    form = AddMobjForm()
+    return render(request, 'micromap/admin.html', {'objs': root_obj, 'form': form})
+
+
 class Dashboard(View):
     #the view to manipulation of root objs list.
-    def get(self, request):
+    def get(self, obj_id, request):
         rootobjs = MmapObj.objects.find
         return render(request, 'micromap/admin.html')
 
@@ -43,13 +58,14 @@ class ObjManage(View):
     #for other obj, only API
     def post(self, request):
         #manage a auto-filled form
+        #default owner of ever obj:  _id: ObjectId("580df609e97af7b87cdec693") 'public'
         return {'result': True}
 
 class DrawManage(View):
     #view for draw add;s
     def get(self, request):
         #acquire the obj and filter all drawables to pass to front end in {{objects}}
-        mmapobj = MmapObj.find() #TODO: syntax to query in mongoengine
+        mmapobj = MmapObj.objects() #syntax to query in mongoengine
         objects = []
         sum = 0
         res = Drawable.objects.find()   #syntax to find drawable for this mmapobj.

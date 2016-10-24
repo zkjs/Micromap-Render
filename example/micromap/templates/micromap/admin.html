@@ -1,10 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+{% load static %}
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
 </head>
 <body>
+{% if objs %}
 
+{% else %}
+There is no root obj, Add one;
+{{form}}
+{% endif %}
 </body>
 </html>
