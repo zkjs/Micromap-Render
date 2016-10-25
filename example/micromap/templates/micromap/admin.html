@@ -2,15 +2,56 @@
 <html lang="en">
 {% load static %}
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>默认样式信息窗体</title>
+    <link rel="stylesheet" href="http://cache.amap.com/lbs/static/main1119.css"/>
+    <script type="text/javascript"
+            src="http://webapi.amap.com/maps?v=1.3&key={{amapKey}}"></script>
 </head>
 <body>
+<div id="container"></div>
+<div class="button-group">
+    <input type="button" class="button" value="增加根对象" onClick="javascript:openInfo()"/>
+    <input type="button" class="button" value="打开列表" onClick="javascript:infoWindow.close()"/>
+</div>
+
 {% if objs %}
 
 {% else %}
 There is no root obj, Add one;
-{{form}}
 {% endif %}
+<div id="tip">
+    信息窗体可想在什么地方打开就在什么地方打开，这里填写对象列表；
+    <div id="list">
+    <template v-for="obj in objArrays">
+        <input type="radio"
+               :id="obj.text"
+               :value="obj.text"
+               name="obj.text"
+               v-model="currentObj">
+        <label :for="obj.text">{{obj}}</label>
+    </template>
+    </div>
+
+    <div id="form">
+    {{form}}
+    </div>
+</div>
+
 </body>
+<script type="text/javascript">
+<!--below i use template syntax to generate a html obj and pass it to javascript lang, the obj is objArray. and in appjs it also has predefined lnglat for clicked event -->
+var objArray = new Array();
+{% for obj in objects %}
+{% if obj.type == 'Polygon' %}
+objArray.push({'type':'{{obj.type}}', 'lnglat':{{obj.lnglat}}, 'path': {{obj.path}} })
+{% else %}
+objArray.push({'type':'{{obj.type}}', 'lnglat':{{obj.lnglat}}, 'text':'{{obj.text}}'});
+{% endif %}
+{% endfor %}
+
+
+</script>>
 </html>
