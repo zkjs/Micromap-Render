@@ -1,0 +1,20 @@
+
+
+<div class="ui-view">
+
+  <ng-include src="'tpl/search.html'"></ng-include>
+
+  <div class="card">
+    <div class="card-content">
+      <div class="card-content-inner">
+        <div class="row">
+          <div ng-repeat="org in orgs" ng-click="setFloor($index)">
+            <p>{{org.title}} {{$index+1}}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+</div>
