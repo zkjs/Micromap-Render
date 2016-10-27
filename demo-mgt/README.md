@@ -7,7 +7,7 @@ This demo is implemented with [taobao SUI mobile v0.5.9](http://m.sui.taobao.org
 - Organization
 
 name | definition | description
------------|------------
+-----|------------|-------------
 id | string(15) |
 title | string(50) | 组织机构名称
 floors | number | 楼层总数
@@ -18,7 +18,7 @@ parent | organization_id | 父级组织
 - Map
 
 name | definition | description
------------|------------
+-----|------------|-------------
 id | string(15) |
 longitude | number | 经度
 latitude | number | 纬度

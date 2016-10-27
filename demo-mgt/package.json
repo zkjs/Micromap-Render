@@ -1,0 +1,30 @@
+{
+  "name": "micromap-renderer",
+  "version": "1.0.0",
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zkjs/Micromap-Render/tree/bq"
+  },
+  "keywords": [
+    "amap"
+  ],
+  "author": "baoqiang",
+  "devDependencies": {
+    "angular": "^1.4.8",
+    "angular-ui-router": "^0.2.15",
+    "browserify": "^13.1.1",
+    "connect-livereload": "^0.6.0",
+    "express": "^4.14.0",
+    "gulp": "^3.9.1",
+    "gulp-browserify": "^0.5.1",
+    "gulp-clean": "^0.3.2",
+    "gulp-concat": "^2.6.0",
+    "gulp-embedlr": "^0.5.2",
+    "gulp-jshint": "^2.0.2",
+    "gulp-livereload": "^3.8.1",
+    "gulp-util": "^3.0.7",
+    "tiny-lr": "^1.0.2",
+    "zepto-browserify": "^1.1.6-1"
+  }
+}
