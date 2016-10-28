@@ -1,15 +1,17 @@
 'use strict';
 
-/* Zepto */
-$ = require('zepto-browserify').$;
+(function(){
+  
+  require('PouchDB');
 
-var angular = require('angular');
-require('angular-ui-router');
+  require('angular').module('demo', [
+    require('angular-ui-router'),
+    require('angular-pouchdb')
+  ]);
 
-angular.module('demo', [
-  'ui.router'
-]);
+  require('./');
+  require('./shared');
+  require('./orgs');
 
-require('./');
-require('./shared');
-require('./orgs');
+})();
+

@@ -1,28 +1,27 @@
 'use strict';
+(function(){
+  require('angular').module('demo')
 
-angular.module('demo')
+  .config(function($urlRouterProvider, $stateProvider, $locationProvider) {
+    $urlRouterProvider.when('', '/');
+    $urlRouterProvider.otherwise('/');
+    $locationProvider.html5Mode(true);
 
-.config(function($urlRouterProvider, $stateProvider, $locationProvider) {
-  $urlRouterProvider.when('', '/');
-  $urlRouterProvider.otherwise('/');
-  $locationProvider.html5Mode(true);
-
-  $stateProvider
-    .state('init', {
+    $stateProvider.state('init', {
       url: '/',
       views: {
         'panel': {
           controller: 'c_orglist',
-          templateUrl: '/views/panel/orglist.html'
+      templateUrl: '/views/panel/orglist.html'
         }
       }
     })
-    .state('org', {
-      url: '/org',
+    .state('part', {
+      url: '/part',
       views: {
         'panel': {
-          controller: 'c_org',
-          templateUrl: '/views/panel/org.html'
+          controller: 'c_partlist',
+          templateUrl: '/views/panel/partlist.html'
         },
         'tools': {
           controller: 'c_draw',
@@ -32,5 +31,22 @@ angular.module('demo')
       params: {
         org: null
       }
+    })
+    .state('obj', {
+      url: '/part/obj',
+      views: {
+        'panel': {
+          controller: 'c_objlist',
+          templateUrl: '/views/panel/objlist.html'
+        },
+        'tools': {
+          controller: 'c_draw',
+          templateUrl: '/views/tools/draw.html'
+        }
+      },
+      params: {
+        part: null
+      }
     });
-});
+  });
+})();

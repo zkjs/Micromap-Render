@@ -1,3 +1,5 @@
+'use strict';
+
 var gulp = require('gulp'),
   gutil = require('gulp-util'),
   jshint = require('gulp-jshint'),
@@ -12,7 +14,7 @@ var embedlr = require('gulp-embedlr'),
   express = require('express'),
   livereload = require('connect-livereload'),
   livereloadport = 35729,
-  serverport = 5000;
+  serverport = 3000;
 
 // Set up an express server (but not starting it yet)
 var server = express();
@@ -24,7 +26,7 @@ server.use(livereload({
 server.use(express.static('./dist'));
 // Because I like HTML5 pushstate .. this redirects everything back to our index.html
 server.all('/*', function(req, res) {
-  res.sendfile('index.html', {
+  res.sendFile('index.html', {
     root: 'dist'
   });
 });
@@ -41,7 +43,7 @@ gulp.task('dev', function() {
 
 // JSHint task
 gulp.task('lint', function() {
-  gulp.src('./app/*.js')
+  gulp.src(['!./app/*.min.js', './app/*.js', './app/**/*.js'])
     .pipe(jshint())
     // You can look into pretty reporters as well, but that's another story
     .pipe(jshint.reporter('default'));
@@ -82,10 +84,10 @@ gulp.task('views', function() {
 
 gulp.task('watch', ['lint', 'browserify', 'views'], function() {
   // Watch our scripts
-  gulp.watch(['app/*.js', 'app/**/*.js'], [
+  gulp.watch(['!app/*.min.js','app/*.js', 'app/**/*.js'], [
     'lint',
     'browserify'
   ]);
 
-  gulp.watch(['assets/css/*.css'], ['views'])
+  gulp.watch(['assets/css/*.css', 'views/**/*'], ['views'])
 });

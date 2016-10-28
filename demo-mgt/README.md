@@ -22,7 +22,7 @@ name | definition | description
 id | string(15) |
 longitude | number | 经度
 latitude | number | 纬度
-name | string(100) | 名称
+title | string(100) | 名称
 address | string(100) | 地址
 level | number(2) | 地图放大级别
 drawables | document:{lnglat, drawable attributes...} | 可绘制对象

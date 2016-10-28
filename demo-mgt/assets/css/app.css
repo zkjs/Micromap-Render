@@ -34,8 +34,10 @@
   position: absolute;
   right: 0;
   top: 50%;
-  min-height: 1rem;
   transform: translateY(-50%);
+}
+.org-button, .hover-button{
+  min-height: 1rem;
 }
 
 .search-block, .search-block input[type=number], .search-block input[type=text]{

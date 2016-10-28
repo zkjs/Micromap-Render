@@ -1,5 +1,6 @@
 'use strict';
 
 require('./org.list');
-require('./org.item');
-require('./org.draw');
+require('./org.part');
+require('./obj.draw');
+require('./part.object');

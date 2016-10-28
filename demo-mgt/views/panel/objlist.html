@@ -1,0 +1,55 @@
+<div class="card">
+  <div class="card-content">
+    <div class="card-content-inner">
+
+      <div class="row">
+        <div class="col-33">
+          <div class="org-title">
+            &nbsp;
+            <span ng-if="org.floors">共{{org.floors}}层</span>
+          </div>
+        </div>
+
+        <div class="col-33 org-button" style="right: 33%" ng-show="!drawing.state">
+          <a ng-click="addPart(org._id)" href="#" class="button block-inline button-small">新增对象</a>
+        </div>
+        <div class="col-33 org-button" ng-show="!drawing.state">
+          <a ng-click="draw(org._id)" href="#" class="button block-inline button-small">新增绘制</a>
+        </div>
+        
+        <div class="col-33 org-button" style="right: 33%"  ng-show="drawing.state">
+          <a ng-click="saveDrawPromt(org._id)" href="#" class="button button-warning button-fill block-inline button-small">保存绘制</a>
+        </div>
+        <div class="col-33 org-button" ng-show="drawing.state">
+          <a ng-click="cancelDraw(org._id)" href="#" class="button button-light block-inline button-small">取消</a>
+        </div>
+        
+      </div>
+
+      <div class="row" ng-repeat="part in parts" ng-mouseover="showManage=1" ng-mouseleave="showManage=0" ng-init="showManage=0" >
+
+        <div class="col-66" ng-click="draw()">
+          <div class="org-title">
+            {{part.title}}
+          </div>
+
+          <div class="row org-footer">
+            <span ng-if="part.floor">第{{part.floor}}层</span>
+            <span ng-if="part.objects">{{part.objects}}个实体</span>
+          </div>
+        </div>
+
+        <div class="col-33 row hover-button" ng-show="showManage">
+          <div class="col-50"> 
+            <span ng-click="edit(org._id, $index)" class="icon icon-edit"></span>
+          </div>
+          <div class="col-50">
+            <span ng-click="del(part._id, $index)" class="icon icon-remove"></span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
