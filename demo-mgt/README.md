@@ -2,6 +2,9 @@
 
 This demo is implemented with [taobao SUI mobile v0.5.9](http://m.sui.taobao.org/) and [AngularJSv1.4.8](http://angularjs.org).
 
+      npm install .
+      gulp dev
+
 ## Data Model
 
 - Organization
