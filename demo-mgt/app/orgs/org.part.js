@@ -105,6 +105,34 @@
       /* TODO save path to local db and push to server when possible */
       console.log('posting drawings to server '+ partid);
     };
+
+    $scope.del = function(part, index){
+      /*TODO delete all drawings in the part 
+       * if it has objects, clear objects first, update the part
+       * else delete the part and update org
+       */
+      if(part.objects){
+        /* clear part objects */
+        part.drawables = [];
+        part.objects = 0;
+        /* update the part */
+        pouchDB('part').put(part)
+        .then(function(res){
+          console.log('part ' + res.id + ' objects cleared');
+        });
+      }else{
+        if(part === $scope.parts.splice(index, 1)[0]){
+          $scope.org.parts = $scope.parts;
+          pouchDB('org').put($scope.org)
+          .then(function(res){
+            console.log('org ' + part._id + ' deleted');
+            part = null;
+          });
+        }
+      }
+      
+      
+    };
     
   });
 })();

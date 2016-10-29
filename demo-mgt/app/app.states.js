@@ -12,7 +12,7 @@
       views: {
         'panel': {
           controller: 'c_orglist',
-      templateUrl: '/views/panel/orglist.html'
+          templateUrl: '/views/panel/orglist.html'
         }
       }
     })
@@ -26,8 +26,13 @@
         'tools': {
           controller: 'c_draw',
           templateUrl: '/views/tools/draw.html'
+        },
+        'mappop': {
+          controller: 'c_mappop',
+          templateUrl: '/views/tools/mappop.html'
         }
       },
+      sticky: true,
       params: {
         org: null
       }
@@ -42,6 +47,10 @@
         'tools': {
           controller: 'c_draw',
           templateUrl: '/views/tools/draw.html'
+        },
+        'mappop': {
+          controller: 'c_mappop',
+          templateUrl: '/views/tools/mappop.html'
         }
       },
       params: {

@@ -17,20 +17,34 @@
     
   })
   
-  .service('drawTools', function($rootScope, pouchDB){
+  .service('drawTools', function($state, $rootScope, pouchDB){
     /* AMap Mousetool */
     var map = $rootScope.map,
     mouse = new AMap.MouseTool(map),
-    drawOpt = {strokeOpacity: 0.2, fillOpacity:0.3},
+    drawOpt = {strokeOpacity: 0.2, fillOpacity:0.3, clickable: true},
     mapContainer = $('#container'),
     service = this,
-    drawing = {state: 0, objects:[]};
+    drawing = {state: 0, objects:[]},
+    showinfo = {showing: 0};
     
     /* draw state */
     
     this.drawing = drawing;
+    this.showinfo = showinfo;
+
+    var popWin = function(drawid){
+      /*TODO create a info window for current drawing 
+       * save related info: name, type, etc for the drawing
+       * update the info into cached drawings
+       */
+    };
 
     /* draw finished handlers */
+    var markerInfoContent = '<div class="mappop"></div>';
+    var infoMarker = new AMap.InfoWindow({
+      offset: new AMap.Pixel(0,0),
+      content: markerInfoContent
+    });
     
     var drawn = function(e) {
       console.log('drawn ' + e);
@@ -38,26 +52,38 @@
        * each time a graph is drawn, save the path to the db with org_part as id
        * handle errors
        */
-      var type = e.obj.CLASS_NAME;
-      var newObj = {type: type};
+      var type = e.obj.CLASS_NAME,
+          newObj = {type: type},
+          infoCoords, infoPop;
       switch(type){
         case 'AMap.Circle':
           newObj.data = {
             center: [e.obj.getCenter().getLng(), e.obj.getCenter().getLat()], 
             radius: e.obj.getRadius()
           };
+          infoCoords = e.obj.getCenter();
           break;
         case 'AMap.Marker':
           newObj.data = {
             position: [e.obj.getPosition().getLng(), e.obj.getPosition().getLat()]
           };
+          infoCoords = e.obj.getPosition();
+          infoPop = infoMarker;
           break;
         default:
           newObj.data = {
             path: e.obj.getPath().map(function(path){return [path.getLng(), path.getLat()];})
           };
+          infoCoords = e.obj.getPath()[0];
           break;
       }
+
+      this.objClicked = function(e, t){
+        console.log('clicked ' + e  + ': ' + t);
+      };
+
+
+      /* cache current drawing */
       var db = pouchDB('drawing');
       db.get(service.drawing.id)
       .then(function(obj){
@@ -67,6 +93,22 @@
           _id: obj._id,
           list: obj.list,
           _rev: obj._rev
+        }).then(function(res){
+          /* when drawing cached, popup for detailed info */
+          infoPop.on('change', function(e){
+            console.log('info window already opened...');
+            /* move prepared pop elements to the amap popup */
+            function replaceMapPop(){
+              if($('.mappop').length>0){
+                $('.mappop').replaceWith($('#mappop'));
+              }else{
+                setTimeout(replaceMapPop, 2);
+              }
+            }
+            replaceMapPop();
+            service.showinfo.showing = 1;
+          });
+          infoPop.open(map, infoCoords);
         });
       }).catch(function(error){
         console.log('no cache yet: ' + error);
@@ -74,7 +116,7 @@
           _id: service.drawing.id,
           list: [newObj]
         }).then(function(res){
-          console.log('cached drawing ' + res._id);
+          console.log('cached drawing ' + res.id);
         });
       });
     };
@@ -106,8 +148,9 @@
       }
       objs.forEach(function(obj){
         var shape = eval('new ' + obj.type + '(' + /* jshint ignore:line */
-          JSON.stringify($.extend(drawOpt, obj.data)) + ');');
+          JSON.stringify($.extend(obj.data, drawOpt)) + ');');
         shape.setMap(map);
+        /*TODO add click listener for shapes */
         /* caching all drawings in cache for cleaning tasks */
         drawing.objects.unshift(shape);
       });
@@ -119,12 +162,17 @@
       pouchDB('drawing').get(drawid)
       .then(function(obj){
         part.drawables = obj.list;
+        part.objects = obj.list.length;
         pouchDB('part').put(part)
         .then(function(res){
           /*TODO post to server */
+          console.log('res: ' + JSON.stringify(res));
+          drawing.state = 0;
+          mouse.close(true);
+          service.show(obj.list);
+        }).catch(function(err){
+          console.log('err: ' + err);
         });
-        drawing.state = 0;
-        mouse.close(false);
       });
     };
     
@@ -150,7 +198,11 @@
     /* draw tools */
     this.drawPoint = function() {
       addListeners();
-      mouse.marker(drawOpt);
+      mouse.marker($.extend({
+        animation: 'AMAP_ANIMATION_DROP',
+        clickable: true,
+        content: '<div class="map-marker"><span>&#3866;</span></div>'
+      }, drawOpt));
     };
     this.drawCircle = function() {
       addListeners();

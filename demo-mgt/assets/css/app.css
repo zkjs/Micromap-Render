@@ -50,6 +50,22 @@
 }
 
 /* AMap css customize */
+.map-marker{
+  color: red;
+  font-size: xx-large;
+  font-weight: lighter;
+}
+.amap-info-outer .list-block{
+  margin: 0;
+  width: 5rem;
+}
+.amap-info-outer .list-block input[type=text], 
+.amap-info-outer .list-block select{
+  font-size: .65rem;
+}
+.amap-info-outer .list-block input[type=text]{
+  height: 1.15rem;
+}
 .amap-container .amap-logo,
 .amap-container .amap-copyright {
   display:none !important;

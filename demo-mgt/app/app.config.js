@@ -26,19 +26,19 @@
       _id: '1',
       title: '一层护理',
       floor: 1,
-      objects: 20,
+      objects: 0,
       drawables: []
     },{
       _id: '2',
       title: '二层肿瘤',
       floor: 2,
-      objects: 30,
+      objects: 0,
       drawables: []
     },{
       _id: '3',
       title: '三层化验',
       floor: 3,
-      objects: 10,
+      objects: 0,
       drawables: []
     },{
       _id: '4',

@@ -1,6 +1,6 @@
 # Indoor Map Demo
 
-This demo is implemented with [taobao SUI mobile v0.5.9](http://m.sui.taobao.org/) and [AngularJSv1.4.8](http://angularjs.org).
+This demo is implemented with [taobao SUI mobile](http://m.sui.taobao.org/) and [AngularJS](http://angularjs.org).
 
       npm install .
       gulp dev
@@ -13,6 +13,7 @@ name | definition | description
 -----|------------|-------------
 id | string(15) |
 title | string(50) | 组织机构名称
+bounds | object{center(LngLat),SW(LngLat), NE(LngLat)} | 地图边界:中心点, 西南和东北角坐标
 floors | number | 楼层总数
 create | date | 创建时间
 update | date | 最近更新时间
