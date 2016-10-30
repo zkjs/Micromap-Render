@@ -1,17 +1,24 @@
-<div class="list-block" ng-show="showinfo.showing"> 
+<div class="list-block" ng-show="drawobj.pop.showing"> 
   <ul>
     <li>
-      <input ng-model="title" type="text" placeholder="标记名称"/>
+    <input ng-model="mtitle" type="text" placeholder="标记名称"/>
     </li>
     <li>
     <div class="item-input">
-      <select>
-        <option>普通</option>
-        <option>医院</option>
-        <option>停车场</option>
+      <select ng-model="mtype">
+        <option value="" disabled selected>选择标记类型</option>
+        <option value='0'>普通</option>
+        <option value='1'>医院</option>
+        <option value='2'>停车场</option>
       </select>
     </div>
     </li>
   </ul>
+  <div class="content-block">
+    <div class="row">
+      <div class="col-50"><a href="#" class="button button-fill" ng-click="saveMarker()">确定</a></div>
+      <div class="col-50"><a href="#" class="button button-light" ng-click="clearMarker()">取消</a></div>
+    </div>
+  </div>
 </div>
 

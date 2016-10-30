@@ -43,7 +43,7 @@ gulp.task('dev', function() {
 
 // JSHint task
 gulp.task('lint', function() {
-  gulp.src(['!./app/*.min.js', './app/*.js', './app/**/*.js'])
+  gulp.src(['./app/*.js', './app/**/*.js'])
     .pipe(jshint())
     // You can look into pretty reporters as well, but that's another story
     .pipe(jshint.reporter('default'));
@@ -89,5 +89,5 @@ gulp.task('watch', ['lint', 'browserify', 'views'], function() {
     'browserify'
   ]);
 
-  gulp.watch(['assets/css/*.css', 'views/**/*'], ['views'])
+  gulp.watch(['assets/css/*.css', 'views/**/*', 'index.html'], ['views']);
 });

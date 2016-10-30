@@ -3,7 +3,7 @@
 (function(){
   
   require('PouchDB');
-  require('ui-router-extras');
+  require('ui-router-extras'); 
 
   require('angular').module('demo', [
     require('angular-ui-router'),

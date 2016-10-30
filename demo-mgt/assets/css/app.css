@@ -49,23 +49,47 @@
   display:inline-block !important;
 }
 
-/* AMap css customize */
-.map-marker{
-  color: red;
-  font-size: xx-large;
-  font-weight: lighter;
+/* Map Marker Popup */
+#mappop select{
+  margin: .1rem 0;
 }
-.amap-info-outer .list-block{
+#mappop .content-block{
+  margin: 0;
+  margin-top: .5rem;
+  padding: 0;
+}
+#mappop .list-block{
   margin: 0;
   width: 5rem;
 }
-.amap-info-outer .list-block input[type=text], 
-.amap-info-outer .list-block select{
-  font-size: .65rem;
+#mappop input[type=text],
+#mappop select, 
+#mappop .button {
+  font-size: .55rem;
+  height: 1.35rem;
 }
-.amap-info-outer .list-block input[type=text]{
-  height: 1.15rem;
+.map-marker, .map-marker-text{
+  height: 1rem;
+  line-height: 1rem;
+  display: inline-block;
+  vertical-align: middle;
 }
+.map-marker{
+  color: blue;
+  width: .75rem;
+}
+.map-marker-text{
+  font-size: smaller;
+}
+
+
+/* AMap css customize */
+.amap-marker-content{
+  white-space: nowrap !important;
+  margin-top: 1rem;
+}
+
+
 .amap-container .amap-logo,
 .amap-container .amap-copyright {
   display:none !important;

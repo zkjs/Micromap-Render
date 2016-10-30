@@ -9,6 +9,7 @@
 
     /* update rootScope data */
     $rootScope.navclick = function() {
+      /* TODO prompt to save current objects if not saved */
       drawTools.clear();
       if ($window.history.length <= 2) {
         $state.go('init');
@@ -20,7 +21,7 @@
     $rootScope.title = org.title;
     
     var drawid = function(partid){
-      return $scope.org._id+'_'+partid;
+      return [$scope.org._id, partid].join('.');
     };
 
     /* preparing scope data */
