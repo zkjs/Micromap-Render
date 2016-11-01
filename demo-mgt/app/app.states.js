@@ -1,8 +1,10 @@
 'use strict';
 (function(){
+
+  var $ = require('zepto-browserify').$;
   require('angular').module('demo')
 
-  .config(function($urlRouterProvider, $stateProvider, $locationProvider) {
+  .config(function($urlRouterProvider, $stateProvider, $locationProvider, $stickyStateProvider) {
     $urlRouterProvider.when('', '/');
     $urlRouterProvider.otherwise('/');
     $locationProvider.html5Mode(true);
@@ -18,8 +20,10 @@
     })
     .state('part', {
       url: '/part',
+      sticky: true,
+      //dsr: true,
       views: {
-        'panel': {
+        'part': {
           controller: 'c_partlist',
           templateUrl: '/views/panel/partlist.html'
         },
@@ -32,9 +36,17 @@
           templateUrl: '/views/tools/mappop.html'
         }
       },
-      sticky: true,
       params: {
         org: null
+      }
+    })
+    .state('part.add', {
+      url: '/add',
+      views: {
+        'modal':{
+          controller: 'c_addpart',
+          templateUrl: '/views/panel/addpart.html'
+        } 
       }
     })
     .state('obj', {
@@ -57,5 +69,8 @@
         part: null
       }
     });
+    $stickyStateProvider.enableDebug(false);
+
   });
+
 })();

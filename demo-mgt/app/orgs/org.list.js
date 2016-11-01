@@ -4,8 +4,10 @@
   var $ = require('zepto-browserify').$;
   require('angular').module('demo')
 
-  .controller('c_orglist', function($scope, $state, $rootScope, pouchDB) {
+  .controller('c_orglist', function($scope, $state, $rootScope, pouchDB, $stickyState) {
     console.log('init finished!');
+    /* clear previous sticket states,  if any */
+    $stickyState.reset('*');
     /* update rootScope variables */
     $rootScope.title = 'XX单位地图对象';
     $rootScope.navbtn = '新增对象';

@@ -1,4 +1,4 @@
-<div class="list-block" ng-show="drawobj.pop.showing"> 
+<div class="list-block" ng-show="pop.showing"> 
   <ul>
     <li>
     <input ng-model="mtitle" type="text" placeholder="标记名称"/>
@@ -16,8 +16,8 @@
   </ul>
   <div class="content-block">
     <div class="row">
-      <div class="col-50"><a href="#" class="button button-fill" ng-click="saveMarker()">确定</a></div>
-      <div class="col-50"><a href="#" class="button button-light" ng-click="clearMarker()">取消</a></div>
+      <div class="col-50"><a href="#" class="button button-fill" ng-click="saveDrawing()">确定</a></div>
+      <div class="col-50"><a href="#" class="button button-light" ng-click="clearUnsaved()">取消</a></div>
     </div>
   </div>
 </div>

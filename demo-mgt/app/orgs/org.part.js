@@ -1,21 +1,20 @@
 'use strict';
 
 (function(){
+  var $ = require('zepto-browserify').$;
   require('angular').module('demo')
 
-  .controller('c_partlist', function($scope, $state, $stateParams, $window, $rootScope, pouchDB, drawTools) {
+  .controller('c_partlist', function($scope, $state, $stateParams, $rootScope, pouchDB, drawTools, $stickyState) {
     console.log('managing org: ' + JSON.stringify($stateParams));
     var org = $stateParams.org;
 
+    $stickyState.reset('*');
     /* update rootScope data */
     $rootScope.navclick = function() {
       /* TODO prompt to save current objects if not saved */
       drawTools.clear();
-      if ($window.history.length <= 2) {
-        $state.go('init');
-      }else {
-        $window.history.back();
-      }
+      $scope.drawing.state = 0;
+      $state.go('init', {}, {reload: true});
     };
     $rootScope.navbtn = '返回上级';
     $rootScope.title = org.title;
@@ -25,28 +24,40 @@
     };
 
     /* preparing scope data */
-    pouchDB('part').allDocs({include_docs: true,
+    pouchDB('part')
+    .allDocs({include_docs: true,
       /* even if we stored strings in the array, keys are parsed as numbers */
       keys:org.parts.map(function(part){return ''+part;})
-    }).then(function(res){
+    })
+    .then(function(res){
       $scope.parts = res.rows.map(function(row){return row.doc;});
+    })
+    .catch(function(err){
+      console.err('err fetching parts ' + err);
     });
+
+    /* scope data and functions */
 
     $scope.org = org;
     $scope.drawing = drawTools.drawing;
-    
-    /* scope functions */
+
+    $scope.add = function(){
+      console.log('add part for org ' + JSON.stringify($scope.org));
+      $state.go('.add');
+    };
     
     /**
      * show current part's objects on the map
      */
-    $scope.show = function(partid){
+    $scope.show = function(partid, index){
       /* show current part's objects overview */
       pouchDB('part').get(partid)
       .then(function(part){
+        part.index = index;
         $scope.part = part;
-        drawTools.show(part.drawables);
+        drawTools.show(part.drawables, partid);
       });
+      $scope.index = index;
     };
     
     /**
@@ -76,9 +87,13 @@
     /**
      * show draw tools and start drawing objects
      */
-    $scope.draw = function(partid){
+    $scope.draw = function(part){
+      if(!part){
+        $.toast('开始绘制前, 请先选定对象');
+        return;
+      }
       /* start draw new objects for the part */
-      var objectid = drawid(partid);
+      var objectid = drawid(part._id);
       console.log('drawing ' + objectid);
       drawTools.draw(objectid);
     };
@@ -86,54 +101,48 @@
     /**
      * prompt for saving current drawings, filling in more details
      */
-    $scope.saveDrawPromt = function(partid){
-      console.log('about to save drawing ' + partid);
+    $scope.saveDraw = function(part){
+      console.log('about to save drawing ' + part._id);
       /*TODO prompt for more input to save drawings*/
-      drawTools.save(drawid(partid), $scope.part);
+      drawTools.save(drawid(part._id), $scope);
     };
     /**
      * cancel drawings
      */
-    $scope.cancelDraw = function(partid){
-      console.log('drawing canceled ' + partid);
-      drawTools.cancel(partid, true);
+    $scope.cancelDraw = function(part){
+      console.log('drawing canceled ' + part._id);
+      drawTools.cancel(part._id, true);
     };
     
-    /**
-     * save part's new drawings to part's objects
-     */
-    $scope.saveDraw = function(partid){
-      /* TODO save path to local db and push to server when possible */
-      console.log('posting drawings to server '+ partid);
-    };
-
     $scope.del = function(part, index){
-      /*TODO delete all drawings in the part 
-       * if it has objects, clear objects first, update the part
-       * else delete the part and update org
-       */
       if(part.objects){
-        /* clear part objects */
+        var ocount = part.objects;
+        /* clear part objects first */
         part.drawables = [];
         part.objects = 0;
         /* update the part */
         pouchDB('part').put(part)
         .then(function(res){
-          console.log('part ' + res.id + ' objects cleared');
+          console.log(['part', res.id, ocount, 'objects cleared'].join(' '));
         });
       }else{
+        /* delete the part */
         if(part === $scope.parts.splice(index, 1)[0]){
-          $scope.org.parts = $scope.parts;
+          $scope.org.parts = $scope.parts.map(function(part){
+            return part._id;
+          });
           pouchDB('org').put($scope.org)
           .then(function(res){
             console.log('org ' + part._id + ' deleted');
-            part = null;
           });
+          $scope.part = null;
         }
       }
-      
-      
+      drawTools.clear();
     };
+
+    drawTools.resetView(org.position);
     
   });
+
 })();

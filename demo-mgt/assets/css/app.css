@@ -18,9 +18,27 @@
   padding-top: .2rem;
   padding-bottom: .2rem;
 }
+.row .active{
+  background: #0894EC;
+  color: white;
+}
 /* home page */
 .ui-view{
   background-color: #f7f7f8;
+}
+.ui-view .ng-scope{
+  position: relative;
+}
+.ui-view .ui-modal{
+  position: absolute;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(40,30,30, .8);
+  display: block;
+  left: 0;
+  margin-left: 0;
+  border-radius: 0;
 }
 .org-title{
   font-size: inherit;
@@ -50,6 +68,9 @@
 }
 
 /* Map Marker Popup */
+.mappop {
+  width: 5rem;
+}
 #mappop select{
   margin: .1rem 0;
 }

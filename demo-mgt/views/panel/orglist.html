@@ -5,7 +5,7 @@
   <div class="card-content">
     <div class="card-content-inner">
 
-      <div class="row" ng-repeat="org in orgs">
+      <div class="row" ng-repeat="org in orgs track by org._id">
 
         <div class="col-60">
           <div class="org-title">

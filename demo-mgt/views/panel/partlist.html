@@ -11,24 +11,26 @@
         </div>
 
         <div class="col-33 org-button" style="right: 33%" ng-show="!drawing.state">
-          <a ng-click="addPart(org._id)" href="#" class="button block-inline button-small">新增对象</a>
+          <a ng-click="add()" class="button block-inline button-small">新增对象</a>
         </div>
         <div class="col-33 org-button" ng-show="!drawing.state">
-          <a ng-click="draw(org._id)" href="#" class="button block-inline button-small">新增绘制</a>
+          <a ng-click="draw(part)" href="#" class="button block-inline button-small" ng-class="{'disabled': !part}" >新增绘制</a>
         </div>
         
         <div class="col-33 org-button" style="right: 33%"  ng-show="drawing.state">
-          <a ng-click="saveDrawPromt(org._id)" href="#" class="button button-warning button-fill block-inline button-small">保存绘制</a>
+          <a ng-click="saveDraw(part)" href="#" class="button button-warning button-fill block-inline button-small">保存绘制</a>
         </div>
         <div class="col-33 org-button" ng-show="drawing.state">
-          <a ng-click="cancelDraw(org._id)" href="#" class="button button-light block-inline button-small">取消</a>
+          <a ng-click="cancelDraw(part)" href="#" class="button button-light block-inline button-small">取消</a>
         </div>
         
       </div>
 
-      <div class="row" ng-repeat="part in parts" ng-mouseover="showManage=1" ng-mouseleave="showManage=0" ng-init="showManage=0" >
+      <div class="row" 
+        ng-repeat="part in parts track by part._id" ng-mouseover="showManage=1" ng-mouseleave="showManage=0" ng-init="showManage=0" >
 
-        <div class="col-66" ng-click="show(part._id)">
+      <div class="col-100 row" ng-class="{'active': index==$index}">
+        <div class="col-66" ng-click="show(part._id, $index)" >
           <div class="org-title">
             {{part.title}}
           </div>
@@ -40,16 +42,20 @@
         </div>
 
         <div class="col-33 row hover-button" ng-show="showManage">
+          <!--
           <div class="col-50"> 
             <span ng-click="edit(org._id, $index)" class="icon icon-edit"></span>
           </div>
-          <div class="col-50">
+          -->
+          <div class="col-50 pull-right">
             <span ng-click="del(part, $index)" class="icon icon-remove"></span>
           </div>
         </div>
 
       </div>
+      </div>
 
     </div>
   </div>
 </div>
+<div ui-view="modal" ng-class="{'ui-modal modal': $state.includes('part.add')}"></div>

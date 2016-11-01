@@ -7,6 +7,7 @@
 
   /* localdata injection to initialize data */
   .run(function($rootScope, $window, $state, $location, localdata) {
+    $rootScope.$state = $state;
     var map = new AMap.Map('container', {
       // center: [113.944053, 22.52872], //华中科大深圳产学研基地
       center: [104.059855, 30.640753], //成都华西医院
