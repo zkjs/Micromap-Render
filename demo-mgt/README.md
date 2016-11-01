@@ -11,8 +11,8 @@ This demo is implemented with [taobao SUI mobile](http://m.sui.taobao.org/) and 
 
 name | definition | description
 -----|------------|-------------
-id | string(15) |
-title | string(50) | 组织机构名称
+id | string(32) |
+title | string(32) | 组织机构名称
 address | string(100) | 地址
 floors | number | 楼层总数
 longitude | number | 经度
@@ -26,8 +26,8 @@ bounds | object{center(LngLat), SW(LngLat), NE(LngLat)} | 地图边界:中心点
 
 name | definition | description
 -----|------------|-------------
-id | string(15) |
-title | string(100) | 名称
+id | string(32) |
+title | string(32) | 名称
 floor | number(2) | 所处楼层
 create | date | 创建时间
 update | date | 最近更新时间
@@ -39,14 +39,15 @@ owner | organization id | 所属组织机构
 name | definition | description
 -----|------------|-------------
 id | string(32) |
-title | string(100) | 地标名称
-type  | string(64) | 绘制实体类型: 'AMap.Circle', 'AMap.Marker', 'AMap.Polygon', etc.
+title | string(32) | 地标名称
+type  | string(32) | 绘制实体类型: 'AMap.Circle', 'AMap.Marker', 'AMap.Polygon', etc.
 data | document/object | 绘制实体数据 
 longitude | number | 经度, 实体的中心位置, 用于显示标记信息
 latitude | number | 纬度, 实体的中心位置, 用于显示标记信息
 level | number | 地图可见级别, 当地图显示级别达到该值后, 该实体才会被显示
 create | date | 创建时间
 update | date | 最近更新时间
+part | string(32) | 所属区域
 
 ### API
 
@@ -83,7 +84,7 @@ update | date | 最近更新时间
         }]
       }
 
-- add drawing [PUT /map/part/{partid}]
+- add drawing [POST /map/{partid}/drawing]
 
   - request
 
