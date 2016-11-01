@@ -37,6 +37,7 @@ owner | organization id | 所属组织机构
 - Drawable
 
 name | definition | description
+-----|------------|-------------
 id | string(32) |
 title | string(100) | 地标名称
 type  | string(64) | 绘制实体类型: 'AMap.Circle', 'AMap.Marker', 'AMap.Polygon', etc.
