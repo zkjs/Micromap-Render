@@ -4,7 +4,7 @@
   var $ = require('zepto-browserify').$;
   require('angular').module('demo')
 
-  .controller('c_partlist', function($scope, $state, $stateParams, $rootScope, pouchDB, drawTools, $stickyState) {
+  .controller('c_partlist', function($scope, $state, $stateParams, $rootScope, pouchDB, drawTools, $stickyState, $http, $location) {
     console.log('managing org: ' + JSON.stringify($stateParams));
     var org = $stateParams.org;
 
@@ -22,6 +22,18 @@
     var drawid = function(partid){
       return [$scope.org._id, partid].join('.');
     };
+
+    /** TODO init data via remote fetching 
+    $http({
+      method: 'GET',
+      url: 'http://'+$location.host()+(!!$location.port()?':'+$location.port():'')+'/map/org/'+org._id
+    }).then(function successCallback(resp) {
+      console.log('parse parts ' + JSON.stringify(resp));
+      // TODO save to local db 
+    }, function errorCallback(errResp){
+      console.err('failed to fetch basic data ' + JSON.stringify(errResp));
+    });
+    */
 
     /* preparing scope data */
     pouchDB('part')

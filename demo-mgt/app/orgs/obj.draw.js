@@ -21,7 +21,7 @@
     
   })
   
-  .service('drawTools', function($state, $rootScope, pouchDB, $timeout){
+  .service('drawTools', function($state, $rootScope, pouchDB, $timeout, $http, $location){
     /* AMap Mousetool */
     var map = $rootScope.map,
     mapContainer = $('#container'),
@@ -213,7 +213,20 @@
       })
       .then(function(res){
         if(!!res) {
-          /*TODO post to server */
+          /**TODO post to server 
+          $http({
+            method: 'POST',
+            url: 'http://'+$location.host()+(!!$location.port()?':'+$location.port():'')+'/map/part/'+part._id,
+            data: part
+          }).then(function successCallback(resp) {
+            console.log('parse orgs ' + JSON.stringify(resp));
+            // TODO cache to local db
+          }, function errorCallback(errResp){
+            console.err('failed to fetch basic data ' + JSON.stringify(errResp));
+          });
+          */
+
+
           console.log('part updated : ' + JSON.stringify(res));
           part._rev = res.rev;
         }

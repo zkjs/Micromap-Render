@@ -13,29 +13,102 @@ name | definition | description
 -----|------------|-------------
 id | string(15) |
 title | string(50) | 组织机构名称
-bounds | object{center(LngLat),SW(LngLat), NE(LngLat)} | 地图边界:中心点, 西南和东北角坐标
+address | string(100) | 地址
 floors | number | 楼层总数
+longitude | number | 经度
+latitude | number | 纬度
 create | date | 创建时间
 update | date | 最近更新时间
-parent | organization_id | 父级组织
+parent | organization id | 父级组织
+bounds | object{center(LngLat), SW(LngLat), NE(LngLat)} | 地图边界:中心点, 西南和东北角坐标
 
-- Map
+- Part
 
 name | definition | description
 -----|------------|-------------
 id | string(15) |
-longitude | number | 经度
-latitude | number | 纬度
 title | string(100) | 名称
-address | string(100) | 地址
-level | number(2) | 地图放大级别
-drawables | document:{lnglat, drawable attributes...} | 可绘制对象
-floor | number(2) | 当前楼层
+floor | number(2) | 所处楼层
 create | date | 创建时间
 update | date | 最近更新时间
-parent | map_id | 父级对象
-owner | organization_id | 所属组织机构
+parent | map id | 父级对象
+owner | organization id | 所属组织机构
+
+- Drawable
+
+name | definition | description
+id | string(32) |
+title | string(100) | 地标名称
+type  | string(64) | 绘制实体类型: 'AMap.Circle', 'AMap.Marker', 'AMap.Polygon', etc.
+data | document/object | 绘制实体数据 
+longitude | number | 经度, 实体的中心位置, 用于显示标记信息
+latitude | number | 纬度, 实体的中心位置, 用于显示标记信息
+level | number | 地图可见级别, 当地图显示级别达到该值后, 该实体才会被显示
+create | date | 创建时间
+update | date | 最近更新时间
+
+### API
+
+- organization list [GET /map/org] 
+
+      {
+        status: 'ok',
+        data: [{
+          id: '1',
+          title: '机构1',
+          address: '地址',
+          floors: 3,
+          longitude: 111.11,
+          latitude: 23.23
+        }]
+      }
+
+- part list [GET /map/org/1]
+
+      {
+        status: 'ok',
+        data: [{
+          id: '1',
+          title: '机构1',
+          floor: 3,
+          drawables: [{
+            id: '111',
+            title: '某个点',
+            type: 'AMap.Circle',
+            longitude: 111.11,
+            latitude: 23.23,
+            data: {...}
+          }]
+        }]
+      }
+
+- add drawing [PUT /map/part/{partid}]
+
+  - request
+
+      {
+        part: '1',
+        drawing: {
+          title: '某个点',
+          type: 'AMap.Polygon',
+          longitude: 111.11,
+          latitude: 23.23,
+          data: {...}
+        }
+      }
+
+  - response
+
+      {
+        status: 'ok',
+        data: {
+          drawid: '1.1.1'
+        }
+      }
+
 
 ## Rendering
 
 - AMap
+
+use [AMap API](http://lbs.amap.com/api/javascript-api/reference/)
