@@ -23,31 +23,41 @@
       return [$scope.org._id, partid].join('.');
     };
 
-    /** TODO init data via remote fetching 
-    $http({
-      method: 'GET',
-      url: 'http://'+$location.host()+(!!$location.port()?':'+$location.port():'')+'/map/org/'+org._id
-    }).then(function successCallback(resp) {
-      console.log('parse parts ' + JSON.stringify(resp));
-      // TODO save to local db 
-    }, function errorCallback(errResp){
-      console.err('failed to fetch basic data ' + JSON.stringify(errResp));
-    });
-    */
-
     /* preparing scope data */
     pouchDB('part')
-    .allDocs({include_docs: true,
-      /* even if we stored strings in the array, keys are parsed as numbers */
-      keys:org.parts.map(function(part){return ''+part;})
-    })
+    .allDocs({include_docs: true, keys:org.parts})
     .then(function(res){
       $scope.parts = res.rows.map(function(row){return row.doc;});
     })
     .catch(function(err){
       console.err('err fetching parts ' + err);
-    });
+      /* when no cache found, init data via remote fetching */
+      $http({
+        method: 'GET',
+        url: 'http://'+$location.host()+(!!$location.port()?':'+$location.port():'')+'/map/org/'+org._id
+      }).then(function successCallback(resp) {
+        console.log('parse parts ' + JSON.stringify(resp));
+        if( 
+            resp.status === 200 && 
+            resp.data.status === 'ok'
+        ){
+          pouchDB('part').buldDocks(
+            resp.data.data.map(function(part){
+              part._id = [org._id, '.', part.id];
+              return part;
+            })
+          ).then(function(res){
+            console.log('data loaded from remote server: ' + resp.data.data.length);
+            $scope.parts = resp.data.data;
+            org.parts = $scope.parts.map(function(part){return part._id;});
+          });
+        }
+      }, function errorCallback(errResp){
+        console.err('failed to fetch basic data ' + JSON.stringify(errResp));
+      });
+      /* */
 
+    });
     /* scope data and functions */
 
     $scope.org = org;

@@ -77,8 +77,6 @@
       }
     }
 
-
-
     /* draw done handlers */
     var markerInfoContent = '<div class="mappop"></div>',
     infoPop = new AMap.InfoWindow({
@@ -137,6 +135,7 @@
           infoCoords = e.obj.getBounds().getCenter();
           break;
       }
+      $.extend(newObj, {longitude: infoCoords.getLng(), latitude: infoCoords.getLat()});
       /* save cache */
       pouchDB(dbname)
       .post(service.drawing.cache)
@@ -209,32 +208,33 @@
         part.objects = part.drawables.length;
         scope.parts[part.index] = part;
         delete part.index;
-        return pouchDB('part').put(part);
-      })
-      .then(function(res){
-        if(!!res) {
-          /**TODO post to server 
-          $http({
-            method: 'POST',
-            url: 'http://'+$location.host()+(!!$location.port()?':'+$location.port():'')+'/map/part/'+part._id,
-            data: part
-          }).then(function successCallback(resp) {
-            console.log('parse orgs ' + JSON.stringify(resp));
-            // TODO cache to local db
-          }, function errorCallback(errResp){
-            console.err('failed to fetch basic data ' + JSON.stringify(errResp));
-          });
-          */
-
-
-          console.log('part updated : ' + JSON.stringify(res));
-          part._rev = res.rev;
-        }
-        service.drawing.state = 0;
-        service.show(part.drawables);
-      })
-      .catch(function(err){
-        console.error('err: ' + err);
+        /* TODO post to server */
+        $http({
+          method: 'POST',
+          url: 'http://'+$location.host()+(!!$location.port()?':'+$location.port():'')+'/map/'+part._id + '/drawing',
+          data: {part: part._id, drawing: part.drawables}
+        }).then(function successCallback(resp) {
+          console.log('parse orgs ' + JSON.stringify(resp));
+          if( 
+              resp.status === 200 && 
+              resp.data.status === 'ok'
+          ){
+            pouchDB('part').put(part)
+            .then(function(res){
+              if(!!res) {
+                console.log('part updated : ' + JSON.stringify(res));
+                part._rev = res.rev;
+              }
+              service.drawing.state = 0;
+              service.show(part.drawables);
+            })
+            .catch(function(err){
+              console.error('err: ' + err);
+            });
+          }
+        }, function errorCallback(errResp){
+          console.err('failed to fetch basic data ' + JSON.stringify(errResp));
+        });
       });
     };
     

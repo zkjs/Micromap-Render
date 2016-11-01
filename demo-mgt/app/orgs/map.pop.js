@@ -19,7 +19,7 @@
 
     /* update marker info for drawing object */
     $scope.saveDrawing = function(){
-      var mdetail = {title: $scope.mtitle, type: $scope.mtype},
+      var mdetail = {title: $scope.mtitle, markertype: $scope.mtype},
           mdom = '<div class="map-marker-text">' + mdetail.title +'</div>',
           dbname = ['drawing', drawobj.id].join('.');
       console.log('saving drawing detail ' + JSON.stringify(mdetail));
@@ -30,6 +30,7 @@
         /* merge marker detail */
         $.extend(marker.obj.data, styles.marker);
         marker.obj.data.content += mdom;
+        $.extend(marker.obj, mdetail);
         return pouchDB(dbname).put(marker);
       })
       .then(function(res){

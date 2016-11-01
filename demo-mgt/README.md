@@ -65,7 +65,7 @@ part | string(32) | 所属区域
         }]
       }
 
-- part list [GET /map/org/1]
+- part list [GET /map/org/{orgid}]
 
       {
         status: 'ok',
@@ -90,22 +90,19 @@ part | string(32) | 所属区域
 
       {
         part: '1',
-        drawing: {
+        drawing: [{
           title: '某个点',
           type: 'AMap.Polygon',
           longitude: 111.11,
           latitude: 23.23,
           data: {...}
-        }
+        }]
       }
 
   - response
 
       {
-        status: 'ok',
-        data: {
-          drawid: '1.1.1'
-        }
+        status: 'ok'
       }
 
 
