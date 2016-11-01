@@ -1,0 +1,28 @@
+
+<ng-include src="'views/panel/search.html'"></ng-include>
+
+<div class="card">
+  <div class="card-content">
+    <div class="card-content-inner">
+
+      <div class="row" ng-repeat="org in orgs">
+
+        <div class="col-60">
+          <div class="org-title">
+            {{org.title}} {{$index+1}}
+          </div>
+
+          <div class="row org-footer">
+            <span ng-if="org.floors">共{{org.floors}}层</span>
+          </div>
+        </div>
+
+        <div class="col-40 org-button" ng-mouseover="showManage=1" ng-mouseleave="showManage=0" ng-init="showManage=0">
+          <a ng-show="showManage" ng-click="manage(org,$index)" href="#" class="button block-inline">进入管理</a>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>

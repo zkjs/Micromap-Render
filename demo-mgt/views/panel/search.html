@@ -1,0 +1,18 @@
+
+<div class="list-block search-block">
+  <div class="item-content">
+    <div class="item-inner">
+      <div class="item-input block-inline item-edit">
+        <input type="text" ng-model="query" placeholder="搜索组织/对象名称" ng-enter="gotoAddr(query)"/>
+      </div>
+    </div>
+  </div>
+  <div class="item-content">
+    <div class="item-inner">
+      <div class="item-input block-inline item-edit">
+        <input type="number" ng-model="gps.lng" placeholder="经度" class="search-gps" ng-enter="goto(gps.lng, gps.lat)"/> /
+        <input type="number" ng-model="gps.lat" placeholder="纬度" class="search-gps" ng-enter="goto(gps.lng, gps.lat)"/>
+      </div>
+    </div>
+  </div>
+</div>

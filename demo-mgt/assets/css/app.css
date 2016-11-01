@@ -1,0 +1,121 @@
+#container {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+#left {
+  float: left;
+  position: absolute;
+  width: 25%;
+  height: auto;
+  min-width: 300px;
+  max-height: 60%;
+  background: rgba(252,249,242, .1);
+}
+.row{
+  position: relative;
+  padding-top: .2rem;
+  padding-bottom: .2rem;
+}
+/* home page */
+.ui-view{
+  background-color: #f7f7f8;
+}
+.org-title{
+  font-size: inherit;
+}
+.org-footer{
+  font-size: small;
+  padding-left: .2rem;
+  color: #666;
+}
+.org-button{
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.org-button, .hover-button{
+  min-height: 1rem;
+}
+
+.search-block, .search-block input[type=number], .search-block input[type=text]{
+  margin: auto;
+  font-size: medium;
+}
+.search-gps{
+  width:40% !important;
+  display:inline-block !important;
+}
+
+/* AMap css customize */
+.map-marker{
+  color: red;
+  font-size: xx-large;
+  font-weight: lighter;
+}
+.amap-info-outer .list-block{
+  margin: 0;
+  width: 5rem;
+}
+.amap-info-outer .list-block input[type=text], 
+.amap-info-outer .list-block select{
+  font-size: .65rem;
+}
+.amap-info-outer .list-block input[type=text]{
+  height: 1.15rem;
+}
+.amap-container .amap-logo,
+.amap-container .amap-copyright {
+  display:none !important;
+}
+.amap-scalecontrol{
+  box-shadow: 0 2px 3px 4px #ffe;
+  background: rgba(200,200,200,.5);
+}
+.amap-maps{
+  zoom: 1.0;
+  -webkit-zoom: 1.0;
+  -moz-transform: scale(1.0);
+}
+.button-group {
+	position: absolute;
+	bottom: 20px;
+	right: 20px;
+	font-size: 12px;
+	padding: 10px;
+}
+.button-group .button {
+	height: 28px;
+	line-height: 28px;
+	background-color: #0D9BF2;
+	color: #FFF;
+	border: 0;
+	outline: none;
+	padding-left: 5px;
+	padding-right: 5px;
+	border-radius: 3px;
+	margin-bottom: 4px;
+	cursor: pointer;
+}
+
+/* sm class fix */
+.button-small{
+  padding: 0 .2rem;
+  font-size: small;
+}
+.bar-title{
+  font-size: large;
+}
+.bar.bar-nav{
+  position: relative;
+}
+.card{
+  margin: auto;
+}
+html, body{
+  width: 100%;
+  height: 100%;
+  margin: auto;
+}
