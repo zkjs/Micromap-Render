@@ -21,7 +21,7 @@
     
   })
   
-  .service('drawTools', function($state, $rootScope, pouchDB, $timeout, $http, $location){
+  .service('drawTools', function($state, $rootScope, pouchDB, $timeout, $http, CONST){
     /* AMap Mousetool */
     var map = $rootScope.map,
     mapContainer = $('#container'),
@@ -209,11 +209,11 @@
         scope.parts[part.index] = part;
         delete part.index;
         /* TODO post to server */
-        $http({
-          method: 'POST',
-          url: 'http://'+$location.host()+(!!$location.port()?':'+$location.port():'')+'/map/'+part._id + '/drawing',
-          data: {part: part._id, drawing: part.drawables}
-        }).then(function successCallback(resp) {
+        var partid = part._id.split('.')[1];
+        $http.post(
+          CONST.URL_SAVEDRAWING.replace(':partid',partid),
+          {'part': partid, 'drawing': part.drawables}
+        ).then(function successCallback(resp) {
           console.log('parse orgs ' + JSON.stringify(resp));
           if( 
               resp.status === 200 && 
@@ -233,7 +233,7 @@
             });
           }
         }, function errorCallback(errResp){
-          console.err('failed to fetch basic data ' + JSON.stringify(errResp));
+          console.error('failed to fetch basic data ' + JSON.stringify(errResp));
         });
       });
     };

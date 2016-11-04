@@ -4,7 +4,7 @@
   var $ = require('zepto-browserify').$;
   require('angular').module('demo')
 
-  .controller('c_partlist', function($scope, $state, $stateParams, $rootScope, pouchDB, drawTools, $stickyState, $http, $location) {
+  .controller('c_partlist', function($scope, $state, $stateParams, $rootScope, pouchDB, drawTools, $stickyState, $http, CONST) {
     console.log('managing org: ' + JSON.stringify($stateParams));
     var org = $stateParams.org;
 
@@ -25,35 +25,40 @@
 
     /* preparing scope data */
     pouchDB('part')
-    .allDocs({include_docs: true, keys:org.parts})
+    .allDocs({include_docs: true, startKey:org._id, endKey: org._id+'.\uffff'})
     .then(function(res){
-      $scope.parts = res.rows.map(function(row){return row.doc;});
+      if(res.rows.length===0){
+        throw new Error('no data in cache!');
+      }else{
+        $scope.parts = res.rows.map(function(row){return row.doc;});
+      }
     })
     .catch(function(err){
-      console.err('err fetching parts ' + err);
+      console.error('err fetching parts ' + err);
       /* when no cache found, init data via remote fetching */
-      $http({
-        method: 'GET',
-        url: 'http://'+$location.host()+(!!$location.port()?':'+$location.port():'')+'/map/org/'+org._id
-      }).then(function successCallback(resp) {
+      $http({ method: 'GET',url: CONST.URL_PARTLIST.replace(':orgid', org._id)})
+      .then(function successCallback(resp) {
         console.log('parse parts ' + JSON.stringify(resp));
         if( 
             resp.status === 200 && 
             resp.data.status === 'ok'
         ){
-          pouchDB('part').buldDocks(
+          pouchDB('part').bulkDocs(
             resp.data.data.map(function(part){
-              part._id = [org._id, '.', part.id];
+              part._id = org._id.concat('.', part._id);
+              part.objects = part.drawables.length;
               return part;
             })
           ).then(function(res){
             console.log('data loaded from remote server: ' + resp.data.data.length);
             $scope.parts = resp.data.data;
             org.parts = $scope.parts.map(function(part){return part._id;});
+          }).catch(function(perr){
+            console.error('failed to cache org parts ' + perr);
           });
         }
       }, function errorCallback(errResp){
-        console.err('failed to fetch basic data ' + JSON.stringify(errResp));
+        console.error('failed to fetch basic data ' + JSON.stringify(errResp));
       });
       /* */
 
@@ -143,6 +148,7 @@
         part.drawables = [];
         part.objects = 0;
         /* update the part */
+        /*TODO empty the drawables in the part from server */
         pouchDB('part').put(part)
         .then(function(res){
           console.log(['part', res.id, ocount, 'objects cleared'].join(' '));
@@ -153,6 +159,8 @@
           $scope.org.parts = $scope.parts.map(function(part){
             return part._id;
           });
+
+          /*TODO delete the the part from server */
           pouchDB('org').put($scope.org)
           .then(function(res){
             console.log('org ' + part._id + ' deleted');

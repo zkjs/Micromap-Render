@@ -4,7 +4,7 @@
   var $ = require('zepto-browserify').$;
   require('angular').module('demo')
 
-  .controller('c_orglist', function($scope, $state, $rootScope, pouchDB, $stickyState) {
+  .controller('c_orglist', function($scope, $state, $rootScope, pouchDB, $stickyState, $http, CONST) {
     console.log('init finished!');
     /* clear previous sticket states,  if any */
     $stickyState.reset('*');
@@ -14,11 +14,25 @@
     $rootScope.navclick = function() {
       console.log('adding new org');
     };
-
-    /* org list */
-    pouchDB('org').allDocs({include_docs: true})
-    .then(function(orgs){
-      $scope.orgs = orgs.rows.map(function(row){ return row.doc; });
+    $http({ method: 'GET', url: CONST.URL_ORGLIST })
+    .then(function successCallback(resp) {
+      console.log('parse orgs ' + JSON.stringify(resp));
+      if( 
+          resp.status === 200 && 
+          resp.data.status === 'ok'
+      ){
+        pouchDB('org').destroy().then(function(res){
+          $scope.orgs = resp.data.data.map(function(org){
+            org.parts = [];
+            return org;
+          });
+          pouchDB('org').bulkDocs($scope.orgs).then(function(res){
+            console.log('data loaded from remote server: ' + resp.data.data.length);
+          });
+        });
+      }
+    }, function errorCallback(errResp){
+      console.error('failed to fetch basic data ' + JSON.stringify(errResp));
     });
 
     /* org item onclick: go to item's object list */

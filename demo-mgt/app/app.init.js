@@ -40,29 +40,7 @@
 
     $rootScope.map = map;
 
-    $http({
-      method: 'GET',
-      url: 'http://'+$location.host()+(!!$location.port()?':'+$location.port():'')+'/map/org'
-    }).then(function successCallback(resp) {
-      console.log('parse orgs ' + JSON.stringify(resp));
-      if( 
-          resp.status === 200 && 
-          resp.data.status === 'ok'
-      ){
-        pouchDB('org').buldDocks(
-          resp.data.data.map(function(org){
-            org._id = org.id;
-            org.parts = [];
-            return org;
-          })
-        ).then(function(res){
-          console.log('data loaded from remote server: ' + resp.data.data.length);
-        });
-      }
-    }, function errorCallback(errResp){
-      console.err('failed to fetch basic data ' + JSON.stringify(errResp));
-    });
-    /* */
+        /* */
 
   });
 

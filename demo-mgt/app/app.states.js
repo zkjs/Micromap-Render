@@ -4,7 +4,7 @@
   var $ = require('zepto-browserify').$;
   require('angular').module('demo')
 
-  .config(function($urlRouterProvider, $stateProvider, $locationProvider, $stickyStateProvider) {
+  .config(function($urlRouterProvider, $stateProvider, $locationProvider, $stickyStateProvider, $httpProvider) {
     $urlRouterProvider.when('', '/');
     $urlRouterProvider.otherwise('/');
     $locationProvider.html5Mode(true);
@@ -21,7 +21,6 @@
     .state('part', {
       url: '/part',
       sticky: true,
-      //dsr: true,
       views: {
         'part': {
           controller: 'c_partlist',
@@ -70,6 +69,8 @@
       }
     });
     $stickyStateProvider.enableDebug(false);
+
+    $httpProvider.defaults.headers.post = {};
 
   });
 
