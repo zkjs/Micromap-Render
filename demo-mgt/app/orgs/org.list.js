@@ -4,7 +4,7 @@
   var $ = require('zepto-browserify').$;
   require('angular').module('demo')
 
-  .controller('c_orglist', function($scope, $state, $rootScope, pouchDB, $stickyState, $http, CONST) {
+  .controller('c_orglist', function($scope, $state, $rootScope, drawTools, pouchDB, $stickyState, $http, CONST) {
     console.log('init finished!');
     /* clear previous sticket states,  if any */
     $stickyState.reset('*');
@@ -14,32 +14,44 @@
     $rootScope.navclick = function() {
       console.log('adding new org');
     };
-    $http({ method: 'GET', url: CONST.URL_ORGLIST })
-    .then(function successCallback(resp) {
-      console.log('parse orgs ' + JSON.stringify(resp));
-      if( 
-          resp.status === 200 && 
-          resp.data.status === 'ok'
-      ){
-        pouchDB('org').destroy().then(function(res){
-          $scope.orgs = resp.data.data.map(function(org){
-            org.parts = [];
-            return org;
-          });
-          pouchDB('org').bulkDocs($scope.orgs).then(function(res){
-            console.log('data loaded from remote server: ' + resp.data.data.length);
-          });
-        });
-      }
-    }, function errorCallback(errResp){
-      console.error('failed to fetch basic data ' + JSON.stringify(errResp));
+
+    $scope.drawing = drawTools.drawing;
+
+    /* TODO remove for production */
+    pouchDB('org').allDocs({include_docs: true})
+    .then(function(orgs){
+       $scope.orgs = orgs.rows.map(function(row){ return row.doc; });
     });
+
+
+    //$http({ method: 'GET', url: CONST.URL_ORGLIST })
+    //.then(function successCallback(resp) {
+    //  console.log('parse orgs ' + JSON.stringify(resp));
+    //  if( 
+    //      resp.status === 200 && 
+    //      resp.data.status === 'ok'
+    //  ){
+    //    pouchDB('org').destroy().then(function(res){
+    //      $scope.orgs = resp.data.data.map(function(org){
+    //        org.parts = [];
+    //        return org;
+    //      });
+    //      pouchDB('org').bulkDocs($scope.orgs).then(function(res){
+    //        console.log('data loaded from remote server: ' + resp.data.data.length);
+    //      });
+    //    });
+    //  }
+    //}, function errorCallback(errResp){
+    //  console.error('failed to fetch basic data ' + JSON.stringify(errResp));
+    //});
 
     /* org item onclick: go to item's object list */
     $scope.manage = function(org) {
-      $state.go('part', {
-        org: org
-      });
+      /* before we go to next stage, clear current drawings */
+      $scope.index = -1;
+      $scope.drawing.state = 0;
+      drawTools.clear();
+      $state.go('part', { org: org });
     };
 
     /* search bar: go to lnglat */
@@ -89,5 +101,46 @@
       console.log('set floor to ' + targetFloor);
       $rootScope.map.indoorMap.showFloor(targetFloor);
     };
+
+    /**
+     * show orgnization drawables
+     */
+    $scope.show = function(org, index){
+      console.log('show ' + org._id);
+      $scope.org = org;
+      $scope.index = index;
+      /* TODO use drawtools to draw org drawables */
+      drawTools.show(org.drawables, org._id);
+    };
+
+    $scope.edit = function(org, index){
+      /* TODO if there are drawables, open editor */
+      /* if no drawables, show draw tools and gen drawid for the orgnization */
+      console.log('editing ' + org._id);
+      $scope.org = org;
+      $scope.index = index;
+      drawTools.show(org.drawables, org._id, true);
+      drawTools.draw(org._id);
+    };
+
+    $scope.del = function(org, index){
+      /* TODO delete orginization from pouchdb and server after several seconds */
+      console.log('deleting org' + org._id);
+      $.toast('暂不支持删除该对象');
+    };
+
+    $scope.saveDraw = function(org, index) {
+      console.log('saving drawing for org ' + org._id);
+      drawTools.save(org._id, $scope, 'org');
+    };
+
+    $scope.cancelDraw = function(org, index) {
+      console.log('canceling drawing for org ' + org._id);
+      drawTools.cancel(org._id, true);
+      /* cancel drawings and rerender objects */
+      drawTools.clear();
+      drawTools.show(org.drawables, org._id);
+    };
+
   });
 })();

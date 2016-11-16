@@ -22,6 +22,9 @@
   background: #0894EC;
   color: white;
 }
+.row .active-light{
+  background: rgba(8, 148, 236, .4);
+}
 /* home page */
 .ui-view{
   background-color: #f7f7f8;
@@ -56,6 +59,9 @@
 }
 .org-button, .hover-button{
   min-height: 1rem;
+}
+.draw-row{
+  min-height: 1.5rem;
 }
 
 .search-block, .search-block input[type=number], .search-block input[type=text]{

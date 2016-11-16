@@ -49,22 +49,11 @@
       }
     };
 
-    function clearCache(retainMouse){
-      var drawing = service.drawing;
-      if(!!drawing.cache){
-        var drawingid = ['drawing', drawing.id].join('.');
-        pouchDB(drawingid).destroy().then(function(resp){
-          console.log('cache cleared');
-          drawing.cache = null;
-        });
-      }
-      if(!!drawing.pop.dom && drawing.pop.dom.getIsOpen()){
-        drawing.pop.dom.close();
-      }
-      drawing.pop.showing = 0;
-      drawing.state = 0;
-      mouse.close(!!retainMouse);
-    }
+
+
+    /**
+     * replace map's popup with custom information window then start drawing
+     */
     function replaceMapPop(){
       console.log('map pop replacing...');
       if($('.mappop').length>0){
@@ -77,13 +66,19 @@
       }
     }
 
-    /* draw done handlers */
+    /* custom information window */
     var markerInfoContent = '<div class="mappop"></div>',
     infoPop = new AMap.InfoWindow({
       offset: new AMap.Pixel(0,0),
       closeWhenClickMap: true,
       content: markerInfoContent
-    }), drawnListener = function(e) {
+    });
+
+    /**
+     * listener for object drawing done event 
+     * when a shape is drawn, it'll be cached
+     */
+    var drawnListener = function(e) {
       console.log('drawn ' + e);
 
       var type = e.obj.CLASS_NAME,
@@ -157,6 +152,7 @@
 
     this.drawListener = AMap.event.addListener(mouse, 'draw', drawnListener);
 
+    /* key pressing listeners: might be removed in the future */
     var addListeners = function() {
       var drawDone = function(e) {
         console.log('key pressed ' + e);
@@ -170,12 +166,32 @@
       };
       mapContainer.on('keMaypress', drawDone);
     };
+
+    /**
+     * shape clicking event handlers 
+     * - double click: start editing
+     * - right click: finish editing and save in updating-cache
+     */
+    var shapeDoubleClick = function(e) {
+      console.log('double clicked ');
+      e.target.editor = new AMap.PolyEditor(e.target.getMap(), e.target);
+      e.target.editor.open();
+    },
+    shapeRightClick = function(e) {
+      console.log('right clicked ');
+      if(!!e.target.editor){
+        e.target.editor.close();
+        //TODO save the updated obj in cache
+        delete e.target.editor;
+      }
+    };
+
     
-    /**Ma
+    /**
      * simply draw all objects in the part
      */
-    this.show = function(objs, partid){
-      if(partid === service.drawing.partid){
+    this.show = function(objs, partid, editing){
+      if(partid === service.drawing.partid && !editing){
         return;
       }
       service.clear();
@@ -189,6 +205,13 @@
         var shape = eval('new ' + obj.type + '(' + /* jshint ignore:line */
           JSON.stringify($.extend(obj.data, drawOpt)) + ');');
         shape.setMap(map);
+
+        /* only show editors in editing mode */
+        if(!!editing){
+          shape.on('dblclick', shapeDoubleClick);
+          shape.on('rightclick', shapeRightClick);
+        }
+
         /* add current showing objects to release list for later clearance */
         showingObjs.unshift(shape);
         /*TODO add click listener for shapes */
@@ -196,8 +219,9 @@
     };
     
     /* save the drawing cache to part */
-    this.save = function(drawid, scope){
-      var drawingid = ['drawing', drawid].join('.'), part = scope.part;
+    this.save = function(drawid, scope, elename){
+      var drawingid = ['drawing', drawid].join('.'), part = scope[elename];
+      //TODO update for the updated caches
       pouchDB(drawingid).allDocs({include_docs: true})
       .then(function(obj){
         if(!obj.rows.length){
@@ -206,35 +230,49 @@
         }
         part.drawables = part.drawables.concat(obj.rows.map(function(row){return row.doc.obj;}));
         part.objects = part.drawables.length;
-        scope.parts[part.index] = part;
+        scope[elename+'s'][part.index] = part;
         delete part.index;
-        /* TODO post to server */
         var partid = part._id.split('.')[1];
-        $http.post(
-          CONST.URL_SAVEDRAWING.replace(':partid',partid),
-          {'part': partid, 'drawing': part.drawables}
-        ).then(function successCallback(resp) {
-          console.log('parse orgs ' + JSON.stringify(resp));
-          if( 
-              resp.status === 200 && 
-              resp.data.status === 'ok'
-          ){
-            pouchDB('part').put(part)
-            .then(function(res){
-              if(!!res) {
-                console.log('part updated : ' + JSON.stringify(res));
-                part._rev = res.rev;
-              }
-              service.drawing.state = 0;
-              service.show(part.drawables);
-            })
-            .catch(function(err){
-              console.error('err: ' + err);
-            });
+
+        /* TODO remove for production */
+        pouchDB(elename).put(part)
+        .then(function(res){
+          if(!!res) {
+            console.log(elename + ' updated : ' + JSON.stringify(res));
+            part._rev = res.rev;
           }
-        }, function errorCallback(errResp){
-          console.error('failed to fetch basic data ' + JSON.stringify(errResp));
+          service.drawing.state = 0;
+          service.show(part.drawables);
+        })
+        .catch(function(err){
+          console.error('err: ' + err);
         });
+
+        //$http.post(
+        //  CONST.URL_SAVEDRAWING.replace(':partid',partid),
+        //  {'part': partid, 'drawing': part.drawables}
+        //).then(function successCallback(resp) {
+        //  console.log('parse orgs ' + JSON.stringify(resp));
+        //  if( 
+        //      resp.status === 200 && 
+        //      resp.data.status === 'ok'
+        //  ){
+        //    pouchDB('part').put(part)
+        //    .then(function(res){
+        //      if(!!res) {
+        //        console.log('part updated : ' + JSON.stringify(res));
+        //        part._rev = res.rev;
+        //      }
+        //      service.drawing.state = 0;
+        //      service.show(part.drawables);
+        //    })
+        //    .catch(function(err){
+        //      console.error('err: ' + err);
+        //    });
+        //  }
+        //}, function errorCallback(errResp){
+        //  console.error('failed to fetch basic data ' + JSON.stringify(errResp));
+        //});
       });
     };
     
@@ -248,7 +286,37 @@
         map.setCenter(position);
       }
     };
-    
+
+    /** 
+     * clear drawing caches:
+     * - destroy drawing cache db
+     * - close/hide drawing pop
+     * - close AMap.mouse
+     * - destroy updating cache db
+     */
+    function clearCache(retainMouse){
+      var drawing = service.drawing;
+      if(!!drawing.cache){
+        var drawingid = ['drawing', drawing.id].join('.');
+        pouchDB(drawingid).destroy().then(function(resp){
+          console.log('cache cleared');
+          drawing.cache = null;
+        });
+      }
+      if(!!drawing.pop.dom && drawing.pop.dom.getIsOpen()){
+        drawing.pop.dom.close();
+      }
+      showingObjs.forEach(function(s) {
+        /* only show editors in editing mode */
+        s.off('dblclick', shapeDoubleClick);
+        s.off('rightclick', shapeRightClick);
+      });
+      //TODO destroy updating cache
+      drawing.pop.showing = 0;
+      drawing.state = 0;
+      mouse.close(!!retainMouse);
+    }
+   
     this.clear = function(){
       showingObjs.forEach(function(s){
         if(!!s.getMap()){
@@ -262,8 +330,7 @@
     };
     
     
-    this.cancel = function(orgid){
-      /*TODO clear previously saved drawings for org */
+    this.cancel = function(drawid){
       service.drawing.state = 0;
       if(!!service.drawing.pop.dom) {
         service.drawing.pop.dom.close();

@@ -1,7 +1,7 @@
 'use strict';
 (function(){
 
-  var $ = require('zepto-browserify').$;
+  var $ = require('zepto-browserify').$, AMap = require('AMap');
   require('angular').module('demo')
 
   .config(function($urlRouterProvider, $stateProvider, $locationProvider, $stickyStateProvider, $httpProvider) {
@@ -15,6 +15,14 @@
         'panel': {
           controller: 'c_orglist',
           templateUrl: '/views/panel/orglist.html'
+        },
+        'tools': {
+          controller: 'c_draw',
+          templateUrl: '/views/tools/draw.html'
+        },
+        'mappop': {
+          controller: 'c_mappop',
+          templateUrl: '/views/tools/mappop.html'
         }
       }
     })
@@ -73,5 +81,12 @@
     $httpProvider.defaults.headers.post = {};
 
   });
+
+  /* load taobao sm-ui */
+  var sm = document.createElement('script');
+  sm.type = 'text/javascript';
+  sm.charset = 'utf-8';
+  sm.src = 'assets/js/sm.min.js';
+  document.getElementsByTagName('head')[0].appendChild(sm);
 
 })();

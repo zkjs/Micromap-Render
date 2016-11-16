@@ -6,14 +6,22 @@
   require('angular').module('demo')
 
   /* localdata injection to initialize data */
-  .run(function($rootScope, $state, $http, $location, localdata, pouchDB) {
+  .run(function($rootScope, $state, localdata){
     $rootScope.$state = $state;
+    //TODO authentication here
+    //
+    //
     var map = new AMap.Map('container', {
-      // center: [113.944053, 22.52872], //华中科大深圳产学研基地
-      center: [104.059855, 30.640753], //成都华西医院
-      zoom: 18,
-      zooms: [12, 18],
+      mapStyle: 'normal',
+      center: [104.203277,30.432479], //成都市双流区太平镇卫生院
+      //center: [113.944053, 22.52872], //华中科大深圳产学研基地
+      //center: [104.059855, 30.640753], //成都华西医院
+      zoom: 19,
+      zooms: [16, 20],
       resizeEnable: true,
+      showIndoorMap: true,
+      expandZoomRange: true,
+      features: ['point', 'building', 'road']
     });
 
     /* AMap Toolbar */
@@ -27,20 +35,18 @@
       position: 'LB'
     }));
 
-    /* AMap IndoorMap */
-    map.on('indoor_create', function() {
-      map.indoorMap.showIndoorMap('B0FFGDWGIT', 1);
-    });
-
+    $rootScope.map = map;
     /* AMap Geocoder */
     $rootScope.geocoder = new AMap.Geocoder({
       radius: 10000,
       extensions: 'all'
     });
 
-    $rootScope.map = map;
-
-        /* */
+    /* load indoor map */
+    AMap.plugin(['AMap.IndoorMap'], function(){
+      var indoorMap = new AMap.IndoorMap({alwaysShow:true});
+      $rootScope.map.setLayers([indoorMap, new AMap.TileLayer()]);
+    });
 
   });
 

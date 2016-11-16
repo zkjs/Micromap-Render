@@ -5,24 +5,48 @@
   <div class="card-content">
     <div class="card-content-inner">
 
-      <div class="row" ng-repeat="org in orgs track by org._id">
-
-        <div class="col-60">
-          <div class="org-title">
-            {{org.title}} {{$index+1}}
-          </div>
-
-          <div class="row org-footer">
-            <span ng-if="org.floors">共{{org.floors}}层</span>
-          </div>
+      <div class="row" ng-class="{'draw-row': drawing.state}">
+        <div class="col-50 org-button" style="right:50%" ng-show="drawing.state">
+          <a ng-click="saveDraw(org)" href="#" class="button button-warning button-fill block-inline button-small">保存绘制</a>
         </div>
-
-        <div class="col-40 org-button" ng-mouseover="showManage=1" ng-mouseleave="showManage=0" ng-init="showManage=0">
-          <a ng-show="showManage" ng-click="manage(org,$index)" href="#" class="button block-inline">进入管理</a>
+        <div class="col-50 org-button" ng-show="drawing.state">
+          <a ng-click="cancelDraw(org)" href="#" class="button button-light block-inline button-small">取消绘制</a>
         </div>
-
       </div>
 
+      <div class="row" ng-repeat="org in orgs track by org._id">
+
+        <div class="col-100 row" ng-class="{'active-light': index==$index}">
+          <div class="col-40" ng-click="show(org, $index)" >
+            <div class="org-title">
+              {{org.title}} {{$index+1}}
+            </div>
+
+            <div class="row org-footer">
+              <span ng-if="org.floors">共{{org.floors}}层</span>
+            </div>
+          </div>
+
+          <div class="col-60 row org-button" ng-mouseover="showManage=1" ng-mouseleave="showManage=0" ng-init="showManage=0">
+            <div class="col-25"> 
+              <span ng-show="showManage" ng-click="edit(org, $index)" class="icon icon-edit"></span>
+            </div>
+            <div class="col-25">
+              <span ng-show="showManage" ng-click="del(org, $index)" class="icon icon-remove"></span>
+            </div>
+
+            <div class="col-50 pull-right">
+              <a ng-show="showManage" ng-click="manage(org,$index)" href="#" class="button block-inline">进入管理</a>
+            </div>
+          </div>
+        </div>
+
+      <!-- org rows -->
+      </div>
+
+    <!-- content inner -->
     </div>
+  <!-- content -->
   </div>
+<!-- card -->
 </div>

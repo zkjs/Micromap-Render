@@ -10,7 +10,7 @@
     $timeout(function(){
       $('.ui-modal').addClass('modal-in');
     }, 100);
-    var fresh = {title: null, floor: null, objects: 0, drawables:[], id: null};
+    var fresh = {title: null, floor: null, objects: 0, drawables:[], id: null, gps:{}};
     $scope.fresh = fresh;
 
     $scope.savePart = function(){

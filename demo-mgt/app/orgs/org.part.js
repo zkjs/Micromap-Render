@@ -131,14 +131,14 @@
     $scope.saveDraw = function(part){
       console.log('about to save drawing ' + part._id);
       /*TODO prompt for more input to save drawings*/
-      drawTools.save(drawid(part._id), $scope);
+      drawTools.save(drawid(part._id), $scope, 'part');
     };
     /**
      * cancel drawings
      */
     $scope.cancelDraw = function(part){
       console.log('drawing canceled ' + part._id);
-      drawTools.cancel(part._id, true);
+      drawTools.cancel(drawid(part._id), true);
     };
     
     $scope.del = function(part, index){
