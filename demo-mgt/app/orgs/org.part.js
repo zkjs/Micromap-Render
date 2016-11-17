@@ -5,14 +5,20 @@
   require('angular').module('demo')
 
   .controller('c_partlist', function($scope, $state, $stateParams, $rootScope, pouchDB, drawTools, $stickyState, $http, CONST) {
-    console.log('managing org: ' + JSON.stringify($stateParams));
     var org = $stateParams.org;
+    console.log('managing org: ' + org._id);
+
+    /* show org drawables as backgrounds */
+    org.drawables.forEach(function(orgdraw) {
+      orgdraw.retain = 1;
+    });
+    drawTools.show(org.drawables, org._id);
 
     $stickyState.reset('*');
     /* update rootScope data */
     $rootScope.navclick = function() {
       /* TODO prompt to save current objects if not saved */
-      drawTools.clear();
+      drawTools.clear(true);
       $scope.drawing.state = 0;
       $state.go('init', {}, {reload: true});
     };
@@ -82,34 +88,13 @@
       .then(function(part){
         part.index = index;
         $scope.part = part;
+        drawTools.clear();
         drawTools.show(part.drawables, partid);
       });
       $scope.index = index;
     };
     
-    /**
-     * edit part objects
-     * TODO navigate to objects view
-     */
-    $scope.edit = function(partid){
-      var objectid = drawid(partid);
-      console.log('editing ' + objectid);
-      
-      /* navigate to objlist */
-      if(!!$scope.part){
-        $state.go('obj', {
-          part: $scope.part
-        });
-      }else{
-        pouchDB('obj').get(partid)
-        .then(function(part){
-          $scope.part = part;
-          $state.go('part', {
-            part: part
-          });
-        });
-      }
-    };
+    
     
     /**
      * show draw tools and start drawing objects
@@ -139,6 +124,35 @@
     $scope.cancelDraw = function(part){
       console.log('drawing canceled ' + part._id);
       drawTools.cancel(drawid(part._id), true);
+    };
+
+    /**
+     * edit part objects
+     * TODO navigate to objects view
+     */
+    $scope.edit = function(part, index){
+      var objectid = drawid(part._id);
+      console.log('editing ' + objectid);
+      $scope.part = part;
+      $scope.index = index;
+      drawTools.clear();
+      drawTools.show(part.drawables, part._id, true);
+      drawTools.draw(drawid(part._id));
+      
+      /* navigate to objlist */
+      //if(!!$scope.part){
+      //  $state.go('obj', {
+      //    part: $scope.part
+      //  });
+      //}else{
+      //  pouchDB('obj').get(partid)
+      //  .then(function(part){
+      //    $scope.part = part;
+      //    $state.go('part', {
+      //      part: part
+      //    });
+      //  });
+      //}
     };
     
     $scope.del = function(part, index){

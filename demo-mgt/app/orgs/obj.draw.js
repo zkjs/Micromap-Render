@@ -30,7 +30,7 @@
     drawOpt = {strokeOpacity: 0.2, fillOpacity:0.3, clickable: true},
     service = this,
     /* current shoing shapes on the map */
-    showingObjs = [];
+    showingObjs = [], updatingObjs = [];
     
     /* draw state */
     this.drawing = {state: 0, objects:[], pop: {showing: 0}};
@@ -48,8 +48,6 @@
         `
       }
     };
-
-
 
     /**
      * replace map's popup with custom information window then start drawing
@@ -173,19 +171,75 @@
      * - right click: finish editing and save in updating-cache
      */
     var shapeDoubleClick = function(e) {
-      console.log('double clicked ');
-      e.target.editor = new AMap.PolyEditor(e.target.getMap(), e.target);
+      if(!!e.target.editor) {
+        return;
+      }
+      console.log('double clicked, editing...');
+      switch(e.target.CLASS_NAME){
+        case 'AMap.Circle':
+          e.target.editor = new AMap.CircleEditor(e.target.getMap(), e.target);
+          break;
+        default:
+          e.target.editor = new AMap.PolyEditor(e.target.getMap(), e.target);
+          break;
+      }
       e.target.editor.open();
+      updatingObjs.unshift(e.target);
     },
     shapeRightClick = function(e) {
       console.log('right clicked ');
       if(!!e.target.editor){
         e.target.editor.close();
-        //TODO save the updated obj in cache
         delete e.target.editor;
+        var drawable = {
+          _id: [service.drawing.partid, e.target.index].join('.'), 
+          index: e.target.index, 
+          obj: { type: e.target.CLASS_NAME }
+        }, coords;
+
+        /* multi-update for the same shape */
+        if(!!e.target._rev){
+          drawable._rev = e.target._rev;
+        }
+
+        switch(drawable.obj.type){
+          /* prepare current drawing cache data */
+          case 'AMap.Circle':
+            drawable.obj.data = {
+              center: [e.target.getCenter().getLng(), e.target.getCenter().getLat()], 
+              radius: e.target.getRadius()
+            };
+            coords = e.target.getCenter();
+            break;
+          case 'AMap.Marker':
+            drawable.obj.data = {
+              position: [e.target.getPosition().getLng(), e.target.getPosition().getLat()]
+            };
+            coords = e.target.getPosition();
+            break;
+          default:
+            drawable.obj.data = {
+              path: e.target.getPath().map(function(path){return [path.getLng(), path.getLat()];})
+            };
+            coords = e.target.getBounds().getCenter();
+            break;
+        }
+        $.extend(drawable.obj, {longitude: coords.getLng(), latitude: coords.getLat()});
+
+        pouchDB('updating').put(drawable)
+        .then(function(res) {
+          console.log('update cached ' + res.id);
+          e.target._rev = res.rev;
+        }).catch(function(err) {
+          console.error('failed to cache update drawables ' + err);
+        });
+
+        //TODO save the updated obj in cache
+        //after the updated object is saved to cache, 2 following steps:
+        //1. save: the updated object put into org.drawables and update org
+        //2. cacel: clear the updated object 
       }
     };
-
     
     /**
      * simply draw all objects in the part
@@ -194,18 +248,30 @@
       if(partid === service.drawing.partid && !editing){
         return;
       }
-      service.clear();
       service.drawing.partid = partid;
       /* clear previous drawings */
       if(!objs || objs.length<1){
         console.log('nothing to show');
         return;
       }
+      var index = 0;
       objs.forEach(function(obj){
         var shape = eval('new ' + obj.type + '(' + /* jshint ignore:line */
           JSON.stringify($.extend(obj.data, drawOpt)) + ');');
+        shape.retain = obj.retain || false;
         shape.setMap(map);
-
+        shape.index = index++;
+        /* show tags for shapes */
+        if(!!obj.title && obj.type !== 'AMap.Marker'){
+          var markerOptions = $.extend(
+            {position: [obj.longitude, obj.latitude], title: obj.title},
+            service.styles.marker
+          );
+          markerOptions.content += '<div class="map-marker-text">' + obj.title +'</div>';
+          var marker = new AMap.Marker(markerOptions);
+          marker.setMap(map);
+          showingObjs.unshift(marker);
+        }
         /* only show editors in editing mode */
         if(!!editing){
           shape.on('dblclick', shapeDoubleClick);
@@ -217,63 +283,96 @@
         /*TODO add click listener for shapes */
       });
     };
+
+    /* close all updating and unsaved objects */
+    this.purgeUpdating = function(){
+      updatingObjs.forEach(function(upo) {
+        if(!!upo.editor){
+          upo.editor.close();
+        }
+      });
+    };
     
     /* save the drawing cache to part */
     this.save = function(drawid, scope, elename){
-      var drawingid = ['drawing', drawid].join('.'), part = scope[elename];
+      service.purgeUpdating();
+      var drawingid = ['drawing', drawid].join('.'), 
+        part = scope[elename],
+        updated = false;
       //TODO update for the updated caches
-      pouchDB(drawingid).allDocs({include_docs: true})
-      .then(function(obj){
-        if(!obj.rows.length){
-          console.log('no drawing to save');
-          return;
+      pouchDB('updating')
+      .allDocs({include_docs: true, startKey:drawid, endKey: drawid+'.\uffff'})
+      .then(function(updates){
+        console.log('drawables updated: ' + updates.rows.length);
+        if(updates.rows.length===0){
+          console.log('no updates');
+        }else{
+          updates.rows.forEach(function(upDoc) {
+            $.extend(part.drawables[upDoc.doc.index], upDoc.doc.obj);
+          });
+          updated = true;
         }
-        part.drawables = part.drawables.concat(obj.rows.map(function(row){return row.doc.obj;}));
-        part.objects = part.drawables.length;
-        scope[elename+'s'][part.index] = part;
-        delete part.index;
-        var partid = part._id.split('.')[1];
 
-        /* TODO remove for production */
-        pouchDB(elename).put(part)
-        .then(function(res){
-          if(!!res) {
-            console.log(elename + ' updated : ' + JSON.stringify(res));
-            part._rev = res.rev;
+        /* concat new drawings */
+        pouchDB(drawingid).allDocs({include_docs: true})
+        .then(function(obj){
+          if(!obj.rows.length && !updated){
+            console.log('no drawing to save');
+            return;
           }
-          service.drawing.state = 0;
-          service.show(part.drawables);
-        })
-        .catch(function(err){
-          console.error('err: ' + err);
-        });
+          if(!!obj.rows.length){
+            /* concat new drawings */
+            part.drawables = part.drawables.concat(obj.rows.map(function(row){return row.doc.obj;}));
+          }
+          part.objects = part.drawables.length;
+          scope[elename+'s'][part.index] = part;
+          delete part.index;
+          var partid = part._id.split('.')[1];
 
-        //$http.post(
-        //  CONST.URL_SAVEDRAWING.replace(':partid',partid),
-        //  {'part': partid, 'drawing': part.drawables}
-        //).then(function successCallback(resp) {
-        //  console.log('parse orgs ' + JSON.stringify(resp));
-        //  if( 
-        //      resp.status === 200 && 
-        //      resp.data.status === 'ok'
-        //  ){
-        //    pouchDB('part').put(part)
-        //    .then(function(res){
-        //      if(!!res) {
-        //        console.log('part updated : ' + JSON.stringify(res));
-        //        part._rev = res.rev;
-        //      }
-        //      service.drawing.state = 0;
-        //      service.show(part.drawables);
-        //    })
-        //    .catch(function(err){
-        //      console.error('err: ' + err);
-        //    });
-        //  }
-        //}, function errorCallback(errResp){
-        //  console.error('failed to fetch basic data ' + JSON.stringify(errResp));
-        //});
+          /* TODO remove for production */
+          pouchDB(elename).put(part)
+          .then(function(res){
+            if(!!res) {
+              console.log(elename + ' updated : ' + JSON.stringify(res));
+              part._rev = res.rev;
+            }
+            service.drawing.state = 0;
+            service.clear();
+            service.show(part.drawables);
+          })
+          .catch(function(err){
+            console.error('err: ' + err);
+          });
+
+          //$http.post(
+          //  CONST.URL_SAVEDRAWING.replace(':partid',partid),
+          //  {'part': partid, 'drawing': part.drawables}
+          //).then(function successCallback(resp) {
+          //  console.log('parse orgs ' + JSON.stringify(resp));
+          //  if( 
+          //      resp.status === 200 && 
+          //      resp.data.status === 'ok'
+          //  ){
+          //    pouchDB('part').put(part)
+          //    .then(function(res){
+          //      if(!!res) {
+          //        console.log('part updated : ' + JSON.stringify(res));
+          //        part._rev = res.rev;
+          //      }
+          //      service.drawing.state = 0;
+          //      service.show(part.drawables);
+          //    })
+          //    .catch(function(err){
+          //      console.error('err: ' + err);
+          //    });
+          //  }
+          //}, function errorCallback(errResp){
+          //  console.error('failed to fetch basic data ' + JSON.stringify(errResp));
+          //});
+        });
       });
+
+      
     };
     
     this.draw = function(drawid){
@@ -299,10 +398,13 @@
       if(!!drawing.cache){
         var drawingid = ['drawing', drawing.id].join('.');
         pouchDB(drawingid).destroy().then(function(resp){
-          console.log('cache cleared');
+          console.log('drawing cache cleared');
           drawing.cache = null;
         });
       }
+      pouchDB('updating').destroy().then(function(resp) {
+        console.log('updates cache cleared');
+      });
       if(!!drawing.pop.dom && drawing.pop.dom.getIsOpen()){
         drawing.pop.dom.close();
       }
@@ -317,20 +419,21 @@
       mouse.close(!!retainMouse);
     }
    
-    this.clear = function(){
+    this.clear = function(includingRetain){
       showingObjs.forEach(function(s){
-        if(!!s.getMap()){
+        if(!!s.getMap() && (includingRetain || !s.retain) ){
           s.setMap();
           s = null;
         }
       });
-      showingObjs = [];
+      showingObjs = showingObjs.filter(function(obj) {return !!obj;});
       service.drawing.partid = null;
       clearCache(true);
     };
     
     
     this.cancel = function(drawid){
+      service.purgeUpdating();
       service.drawing.state = 0;
       if(!!service.drawing.pop.dom) {
         service.drawing.pop.dom.close();

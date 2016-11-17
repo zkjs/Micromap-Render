@@ -110,6 +110,7 @@
       $scope.org = org;
       $scope.index = index;
       /* TODO use drawtools to draw org drawables */
+      drawTools.clear(true);
       drawTools.show(org.drawables, org._id);
     };
 
@@ -119,6 +120,7 @@
       console.log('editing ' + org._id);
       $scope.org = org;
       $scope.index = index;
+      drawTools.clear(true);
       drawTools.show(org.drawables, org._id, true);
       drawTools.draw(org._id);
     };
