@@ -75,7 +75,7 @@
     $scope.drawing = drawTools.drawing;
 
     $scope.add = function(){
-      console.log('add part for org ' + JSON.stringify($scope.org));
+      console.log('add part for org ' + org._id);
       $state.go('.add');
     };
     

@@ -1,7 +1,7 @@
 'use strict';
 (function(){
 
-  var $ = require('zepto-browserify').$, AMap = require('AMap');
+  var AMap = require('AMap');
   require('angular').module('demo')
 
   .config(function($urlRouterProvider, $stateProvider, $locationProvider, $stickyStateProvider, $httpProvider) {

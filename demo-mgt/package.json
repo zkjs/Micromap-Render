@@ -41,6 +41,7 @@
   },
   "browserify-shim": {
     "AMap": "global:AMap",
-    "PouchDB": "global:PouchDB"
+    "PouchDB": "global:PouchDB",
+    "Draggable": "global:Draggable"
   }
 }

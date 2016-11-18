@@ -38,6 +38,7 @@
     this.styles = {
       marker: {
         animation: 'AMAP_ANIMATION_NONE',
+        autoRotation: true,
         clickable: true,
         content: `
           <div class="map-marker">
@@ -174,7 +175,11 @@
       if(!!e.target.editor) {
         return;
       }
+      //TODO when editing, close other unsaved editors
       console.log('double clicked, editing...');
+      updatingObjs.forEach(function(obj) {
+        obj.editor.close();
+      });
       switch(e.target.CLASS_NAME){
         case 'AMap.Circle':
           e.target.editor = new AMap.CircleEditor(e.target.getMap(), e.target);
@@ -267,7 +272,7 @@
             {position: [obj.longitude, obj.latitude], title: obj.title},
             service.styles.marker
           );
-          markerOptions.content += '<div class="map-marker-text">' + obj.title +'</div>';
+          markerOptions.content = '<div class="map-marker-text">' + obj.title +'</div>';
           var marker = new AMap.Marker(markerOptions);
           marker.setMap(map);
           showingObjs.unshift(marker);

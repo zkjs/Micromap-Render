@@ -2,7 +2,7 @@
 
 (function(){
 
-  var AMap = require('AMap');
+  var $ = require('zepto-browserify').$, AMap = require('AMap'), Draggable = require('Draggable');
   require('angular').module('demo')
 
   /* localdata injection to initialize data */
@@ -17,7 +17,8 @@
       //center: [113.944053, 22.52872], //华中科大深圳产学研基地
       //center: [104.059855, 30.640753], //成都华西医院
       zoom: 19,
-      zooms: [16, 20],
+      zooms: [18, 20],
+      rotateEnable: true,
       resizeEnable: true,
       showIndoorMap: true,
       expandZoomRange: true,
@@ -46,6 +47,19 @@
     AMap.plugin(['AMap.IndoorMap'], function(){
       var indoorMap = new AMap.IndoorMap({alwaysShow:true});
       $rootScope.map.setLayers([indoorMap, new AMap.TileLayer()]);
+      $('.amap-toolbar').append('<div class="amap-spinner"><div class="slice"</div></div>');
+      Draggable.create('.amap-spinner', {
+        type: 'rotation',
+        onDrag: function() {
+          var angle = $('.amap-spinner')[0]._gsTransform.rotation;
+          if (angle < 0) {
+            angle = 360+angle%360;
+          } else if (angle > 360) {
+            angle %= 360;
+          } 
+          $rootScope.map.setRotation(angle);
+        }
+      });
     });
 
   });
