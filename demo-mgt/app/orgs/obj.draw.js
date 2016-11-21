@@ -178,7 +178,10 @@
       //TODO when editing, close other unsaved editors
       console.log('double clicked, editing...');
       updatingObjs.forEach(function(obj) {
-        obj.editor.close();
+        if(!!obj.editor) {
+          obj.editor.close();
+          delete obj.editor;
+        }
       });
       switch(e.target.CLASS_NAME){
         case 'AMap.Circle':
