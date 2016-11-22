@@ -9,7 +9,8 @@
   .constant('CONST', {
     'URL_SAVEDRAWING': baseurl + ':partid/drawing',
     'URL_ORGLIST': baseurl + 'org',
-    'URL_PARTLIST': baseurl + 'org/:orgid'
+    'URL_PARTLIST': baseurl + 'org/:orgid',
+    'BLE_RANGE': 1200
   })
 
   .service('localdata', function($http, pouchDB){

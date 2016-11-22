@@ -4,9 +4,14 @@
   var $ = require('zepto-browserify').$;
   require('angular').module('demo')
 
-  .controller('c_partlist', function($scope, $state, $stateParams, $rootScope, pouchDB, drawTools, $stickyState, $http, CONST) {
+  .controller('c_partlist', function($scope, $state, $stateParams, $rootScope, pouchDB, drawTools, snapTools, $stickyState, $http, CONST) {
     var org = $stateParams.org;
     console.log('managing org: ' + org._id);
+
+    $rootScope.map.clearMap();
+    $rootScope.map.destroy();
+
+    snapTools.show();
 
     /* show org drawables as backgrounds */
     org.drawables.forEach(function(orgdraw) {
@@ -107,7 +112,8 @@
       /* start draw new objects for the part */
       var objectid = drawid(part._id);
       console.log('drawing ' + objectid);
-      drawTools.draw(objectid);
+      //drawTools.draw(objectid);
+      snapTools.draw(objectid);
     };
     
     /**

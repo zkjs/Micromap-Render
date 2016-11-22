@@ -42,6 +42,7 @@
   "browserify-shim": {
     "AMap": "global:AMap",
     "PouchDB": "global:PouchDB",
-    "Draggable": "global:Draggable"
+    "Draggable": "global:Draggable",
+    "Snap": "global:Snap"
   }
 }

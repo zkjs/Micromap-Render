@@ -35,12 +35,8 @@
           templateUrl: '/views/panel/partlist.html'
         },
         'tools': {
-          controller: 'c_draw',
-          templateUrl: '/views/tools/draw.html'
-        },
-        'mappop': {
-          controller: 'c_mappop',
-          templateUrl: '/views/tools/mappop.html'
+          controller: 'c_snap',
+          templateUrl: '/views/tools/snap.html'
         }
       },
       params: {
