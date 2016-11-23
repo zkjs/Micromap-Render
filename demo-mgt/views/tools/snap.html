@@ -1,3 +1,7 @@
 <div class="button-group" ng-show="drawing.state">
-  <input type="button" class="button" value="添加AP" ng-click="point()" />
+
+  <input type="button" class="button" value="添加AP" ng-click="point()" ng-show="drawing.state==1" />
+  <input type="button" class="button button-fill" value="保存" ng-click="save()" ng-show="drawing.state==2" />
+  <input type="button" class="button button-light" value="取消" style="color:#fff"  ng-click="cancel()" ng-show="drawing.state==2"/>
+
 </div>

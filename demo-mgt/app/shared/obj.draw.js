@@ -248,11 +248,22 @@
         //2. cacel: clear the updated object 
       }
     };
-    
+
+    this.hide = function() {
+      //$rootScope.map.clearMap();
+      //$rootScope.map.destroy();
+      $('#container').hide();
+    };
+
     /**
      * simply draw all objects in the part
      */
     this.show = function(objs, partid, editing){
+      if(!objs && !partid && !editing){
+        /* show map */
+        $('#container').show();
+      }
+
       if(partid === service.drawing.partid && !editing){
         return;
       }

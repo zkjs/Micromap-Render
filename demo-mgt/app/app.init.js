@@ -18,7 +18,10 @@
       //center: [104.059855, 30.640753], //成都华西医院
       zoom: 19,
       zooms: [18, 20],
+      dragEnable: true,
+      zoomEnable: true,
       rotateEnable: true,
+      scrollWheel: true,
       resizeEnable: true,
       showIndoorMap: true,
       expandZoomRange: true,

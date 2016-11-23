@@ -16,6 +16,7 @@
     };
 
     $scope.drawing = drawTools.drawing;
+    drawTools.show();
 
     /* TODO remove for production */
     pouchDB('org').allDocs({include_docs: true})
@@ -51,6 +52,7 @@
       $scope.index = -1;
       $scope.drawing.state = 0;
       drawTools.clear();
+      drawTools.hide();
       $state.go('part', { org: org });
     };
 

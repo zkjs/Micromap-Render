@@ -4,23 +4,15 @@
   var $ = require('zepto-browserify').$;
   require('angular').module('demo')
 
-  .controller('c_partlist', function($scope, $state, $stateParams, $rootScope, pouchDB, drawTools, snapTools, $stickyState, $http, CONST) {
+  .controller('c_partlist', function($scope, $state, $stateParams, $rootScope, pouchDB, snapTools, $stickyState, $http, CONST) {
     var org = $stateParams.org;
     console.log('managing org: ' + org._id);
-
-    /* show org drawables as backgrounds */
-    org.drawables.forEach(function(orgdraw) {
-      orgdraw.retain = 1;
-    });
-    drawTools.show(org.drawables, org._id);
 
     $stickyState.reset('*');
     /* update rootScope data */
     $rootScope.navclick = function() {
       /* TODO prompt to save current objects if not saved */
-      drawTools.clear(true);
-      $scope.drawing.state = 0;
-      drawTools.show();
+      snapTools.hide();
       $state.go('init', {}, {reload: true});
     };
     $rootScope.navbtn = '返回上级';
@@ -73,7 +65,6 @@
     /* scope data and functions */
 
     $scope.org = org;
-    $scope.drawing = drawTools.drawing;
 
     $scope.add = function(){
       console.log('add part for org ' + org._id);
@@ -89,13 +80,13 @@
       .then(function(part){
         part.index = index;
         $scope.part = part;
-        drawTools.clear();
-        drawTools.show(part.drawables, partid);
+        //drawTools.clear();
+        //drawTools.show(part.drawables, partid);
+        snapTools.clear();
+        snapTools.show(part.drawables, partid, $scope, 'part');
       });
       $scope.index = index;
     };
-    
-    
     
     /**
      * show draw tools and start drawing objects
@@ -108,52 +99,7 @@
       /* start draw new objects for the part */
       var objectid = drawid(part._id);
       console.log('drawing ' + objectid);
-      drawTools.draw(objectid);
-    };
-    
-    /**
-     * prompt for saving current drawings, filling in more details
-     */
-    $scope.saveDraw = function(part){
-      console.log('about to save drawing ' + part._id);
-      /*TODO prompt for more input to save drawings*/
-      drawTools.save(drawid(part._id), $scope, 'part');
-    };
-    /**
-     * cancel drawings
-     */
-    $scope.cancelDraw = function(part){
-      console.log('drawing canceled ' + part._id);
-      drawTools.cancel(drawid(part._id), true);
-    };
-
-    /**
-     * edit part objects
-     * TODO navigate to objects view
-     */
-    $scope.edit = function(part, index){
-      var objectid = drawid(part._id);
-      console.log('editing ' + objectid);
-      $scope.part = part;
-      $scope.index = index;
-      drawTools.clear();
-      drawTools.show(part.drawables, part._id, true);
-      drawTools.draw(drawid(part._id));
-      
-      /* navigate to objlist */
-      //if(!!$scope.part){
-      //  $state.go('obj', {
-      //    part: $scope.part
-      //  });
-      //}else{
-      //  pouchDB('obj').get(partid)
-      //  .then(function(part){
-      //    $scope.part = part;
-      //    $state.go('part', {
-      //      part: part
-      //    });
-      //  });
-      //}
+      snapTools.draw(objectid);
     };
     
     $scope.del = function(part, index){
@@ -183,10 +129,8 @@
           $scope.part = null;
         }
       }
-      drawTools.clear();
+      snapTools.clear();
     };
-
-    drawTools.resetView(org.position);
     
   });
 
