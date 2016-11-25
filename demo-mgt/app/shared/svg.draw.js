@@ -17,21 +17,14 @@
   })
 
   .service('snapTools', function($state, $rootScope, pouchDB, $timeout, $http, CONST){
-
     var paper = null, service = this;
 
     /* draw state */
-    this.drawing = {state: 0, objects:[], ratio: 1.0, vratio: 1.0, bounds: {}, events: {}};
+    this.drawing = {state: 0, objects:[], ratio: 1.0, vratio: 1.0, bounds: {}, events: {}, pop: {}, cache: {data: []}};
     this.coords = null;
-
     this.draw = function(drawid) {
       service.drawing.state = 1;
-      service.drawing.id = drawid;
     };
-
-    function drawingid() {
-      return 'drawing.'+service.drawing.id;
-    }
 
     /**
      * given screen coords, translate to viewBox coords
@@ -54,23 +47,31 @@
     }
     
     function addAP(e, x, y) {
+      //TODO clear unsaved
+      console.log(x + ',' + y);
       var vCoords = viewBoxCoords(x, y), paper = service.paper;
       if(vCoords.inside){
+        service.clearUnsaved();
         var center = paper.circle(vCoords.vx, vCoords.vy, 10);
         center.attr({fill: 'rgb(56,72,224)', strokeWidth: 2, stroke: 'rgb(56,72,224)'});
         //TODO rotate according to the distance to the wall
         var dropin = paper.circle(vCoords.vx, vCoords.vy, CONST.BLE_RANGE);
         dropin.attr({fill: 'rgba(56,72,224,.3)', strokeWidth: 1, stroke: '#333'});
+        service.drawing.cache.data.unshift(dropin);
+        service.drawing.cache.data.unshift(center);
         //TODO drop popup here: fill ap id and save position for the ap
         var drawable = {
           _id: OID().toString(),
           obj: { type: 'AMap.Marker', data: { position: [vCoords.vx, vCoords.vy]} }
         };
         //TODO cache the point
-        pouchDB(drawingid())
+        pouchDB(service.drawing.id)
         .post(drawable)
         .then(function(res) {
           console.log('cached ' + res.id);
+          service.drawing.cache.id = res.id; 
+          service.drawing.cache.rev = res.rev;
+          service.showPop(x, y);
           //TODO open info pop for AP info
         });
       }
@@ -91,10 +92,8 @@
       /* show save/cancel buttons */
       service.drawing.state = 2;
       $('#left').hide();
-
       service.drawing.zpd = paper.zpd('save');
       paper.zpd('destroy');
-
       /* trace mouse movements as a coord reference */
       paper.mousemove(traceMouse);
       service.drawing.events.mousemove = traceMouse;
@@ -107,14 +106,15 @@
 
       var paper = service.paper;
       /* stop tracing mouse movements */
-      service.coords.remove();
+      if(!!service.coords) {
+        service.coords.remove();
+      }
       service.coords = null;
       /* unregister all event listeners */
       Object.keys(service.drawing.events).forEach(function(eventName) {
         paper['un'+eventName](service.drawing.events[eventName]);
       });
       paper.node.removeAttribute('viewBox');
-      paper.zpd({load: service.drawing.zpd});
     }
 
     /**
@@ -123,7 +123,6 @@
     this.drawPoint = function() {
       var paper = service.paper, bounds = service.drawing.bounds;
       startDrawing();
-      
       /* view fitting */
       paper.attr({viewBox:'0 0 ' + bounds.width + ' ' + bounds.height});
 
@@ -132,13 +131,13 @@
     };
 
     this.save = function() {
-      //TODO save drawings in caches to db and post to server
-      endDrawing();
-      //sav
+    //TODO save drawings in caches to db and post to server
       var elename = service.drawing.elename, 
         scope = service.drawing.scope,
         part = scope[elename];
-      pouchDB(drawingid()).allDocs({include_docs: true})
+
+      endDrawing();
+      pouchDB(service.drawing.id).allDocs({include_docs: true})
       .then(function(obj) {
         if(!!obj.rows.length){
             /* concat new drawings */
@@ -165,13 +164,15 @@
 
           /* for production */
           var partid = part._id.split('.')[1];
+          //TODO update ap positions in remote server
       });
     };
 
     this.cancel = function() {
       //TODO cancel drawings
-      endDrawing();
       service.clear();
+      endDrawing();
+      service.show();
     };
 
     this.clear = function() {
@@ -181,17 +182,59 @@
         service.paper.zpd('destroy');
         service.paper.clear();
       }
+      service.clearUnsaved();
       service.clearCache();
+      service.drawing.state = 0;
     };
 
     this.clearCache = function() {
-      pouchDB(drawingid()).destroy().then(function(resp){
-        console.log('drawing cache cleared');
-      });
+      if(!!service.drawing.id){
+        pouchDB(service.drawing.id).destroy().then(function(resp){
+          console.log('drawing cache cleared');
+        });
+      }
+    };
+
+    this.clearUnsaved = function(retain) {
+      var cache = service.drawing.cache;
+      if(retain) {
+        cache.data = [];
+      }else{
+        cache.data.forEach(function(c) {
+          c.remove();
+        });
+      }
+      if(!!cache.id){
+        pouchDB(service.drawing.id)
+        .remove({_id: cache.id, _rev: cache.rev})
+        .then(function(deletion){
+          console.log('previous unsaved drawing cleared ' + JSON.stringify(deletion));
+        })
+        .catch(function(err){
+          console.log('clear unsaved err ' + err);
+        });
+      }
+      service.closePop();
     };
 
     this.hide = function() {
       service.clear();
+    };
+
+    this.showPop = function(x, y) {
+      $('body').append('<div id="popwrapper" style="position:absolute;width:5.5rem;z-index:1000;left:'+x+'px;top:'+y+'px;"></div>');
+      //TODO create a popup dom and save to drawing
+      //append mappop dom here
+      $('#popwrapper').append($('#mappop'));
+      service.drawing.pop.showing = 1;
+    };
+
+    this.closePop = function() {
+      //TODO move mappop to root dom
+      //remove the popup dom
+      $('body').append($('#mappop'));
+      service.drawing.pop.showing = 0;
+      $('#popwrapper').remove();
     };
 
     function pathCenter(path) {
@@ -204,12 +247,14 @@
     }
 
     this.show = function(objs, partid, scope, elename) {
-      service.drawing.partid = partid;
-      service.drawing.scope = scope;
-      service.drawing.elename = elename;
-
-      var bounds = {width:5040, height:1220};
-      service.drawing.bounds = bounds;
+      service.clear();
+      service.drawing.partid = partid || service.drawing.partid;
+      service.drawing.scope = scope || service.drawing.scope;
+      service.drawing.elename = elename || service.drawing.elename;
+      service.drawing.objs = objs || service.drawing.objs;
+      objs = service.drawing.objs;
+      service.drawing.bounds = {width:5040, height:1220};
+      service.drawing.id = 'drawing.'+service.drawing.partid;
       
       var paper = new Snap('#indoor');
       paper.attr({
@@ -218,28 +263,8 @@
         strokeWidth: 5
       });
       
-      //var objLow = [], objHigh = [];
-      //for(var i = 0; i<9; i++){
-      //  objLow.unshift({x: i*360, y: 0, width: 360, height: 488, title: '病房'});
-      //  objHigh.unshift({x: i*360, y: 732, width: 360, height: 488, title: '病房'});
-      //}
-      //objLow.unshift({x: 9*360, y: 0, width: 360*4, height: 1220, title: '产房'});
-      //objLow.unshift({x: 13*360, y:0, width: 360, height: 488, title: '杂物间'});
-      //objHigh.unshift({x: 13*360, y:732, width: 360, height: 488, title: '楼梯'});
-      //objLow.forEach(function(obj) {
-      //  paper.rect(obj.x, obj.y, obj.width, obj.height);
-      //  var text = paper.text(obj.x+obj.width/3, obj.y+obj.height/2, obj.title);
-      //  text.attr({strokeWidth: 1, fontSize: obj.width/6, fill: '#333'});
-      //});
-
-      //objHigh.forEach(function(obj) {
-      //  paper.rect(obj.x, obj.y, obj.width, obj.height);
-      //  var text = paper.text(obj.x+obj.width/3, obj.y+obj.height/2, obj.title);
-      //  text.attr({strokeWidth: 1, fontSize: obj.width/6, fill: '#333'});
-      //});
-
       /* view fitting */
-      objs.forEach(function(obj){
+      service.drawing.objs.forEach(function(obj){
         switch(obj.type){
           case 'AMap.Marker':
             //TODO add to markerToggles
@@ -260,7 +285,11 @@
         }
       });
 
-      paper.zpd();
+      if(!service.drawing.zpd){
+        paper.zpd();
+      }else{
+        paper.zpd({load: service.drawing.zpd});
+      }
 
       service.paper = paper;
 

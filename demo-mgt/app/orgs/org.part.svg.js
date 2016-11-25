@@ -80,9 +80,6 @@
       .then(function(part){
         part.index = index;
         $scope.part = part;
-        //drawTools.clear();
-        //drawTools.show(part.drawables, partid);
-        snapTools.clear();
         snapTools.show(part.drawables, partid, $scope, 'part');
       });
       $scope.index = index;

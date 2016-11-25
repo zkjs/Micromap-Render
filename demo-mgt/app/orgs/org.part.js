@@ -188,6 +188,7 @@
 
     drawTools.resetView(org.position);
     
+
   });
 
 })();

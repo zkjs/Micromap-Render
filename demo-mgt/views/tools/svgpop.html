@@ -1,0 +1,16 @@
+<div class="list-block" ng-show="pop.showing"> 
+  <ul style="padding:.2rem">
+    <li>
+      <input ng-model="model.ap" type="text" placeholder="AP"/>
+    </li>
+    <li>
+      <input ng-model="model.height" type="number" placeholder="离地高度(米)"/>
+    </li>
+    <li class="row">
+      <div class="col-50"><a href="#" class="button button-fill" ng-click="saveDrawing()">确定</a></div>
+      <div class="col-50"><a href="#" class="button button-light" ng-click="clearUnsaved()">取消</a></div>
+    </li>
+  </ul>
+
+</div>
+

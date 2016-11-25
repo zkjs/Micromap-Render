@@ -7,7 +7,7 @@
 
 #left {
   z-index: 1000;
-  
+  overflow: auto;
   position: absolute;
   width: 25%;
   height: auto;
@@ -106,7 +106,7 @@
   margin: 0;
   width: 5rem;
 }
-#mappop input[type=text],
+#mappop input[type=text], #mappop input[type=number],
 #mappop select, 
 #mappop .button {
   font-size: .55rem;

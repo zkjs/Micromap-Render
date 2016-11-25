@@ -37,6 +37,10 @@
         'tools': {
           controller: 'c_snap',
           templateUrl: '/views/tools/snap.html'
+        },
+        'mappop': {
+          controller: 'c_svgpop',
+          templateUrl: '/views/tools/svgpop.html'
         }
       },
       params: {
