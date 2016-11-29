@@ -8,8 +8,20 @@
   .controller('c_svgpop', function($scope, $state, $stateParams, $rootScope, pouchDB, snapTools) {
     console.log('svg pop init.');
     var drawobj = $scope.drawobj = snapTools.drawing, ctrl = this;
+    $scope.aps = [];
     $scope.pop = drawobj.pop;
     $scope.model = {};
+
+    /* load unused aps from local */
+    pouchDB('ap').allDocs({include_docs: true})
+    .then(function(res) {
+      $scope.aps = $scope.aps.concat(res.rows.filter(function(row) {
+        return row.doc.status === 0;
+      }).map(function(row) {
+        row.doc.id = row.doc._id;
+        return row.doc;
+      }));
+    });
 
     this.clearModel = function(){
       $scope.model = {};
@@ -17,26 +29,26 @@
 
     /* update details for ap */
     $scope.saveDrawing = function(){
-      var model = $scope.model;
+      var model = $scope.model, pop = $scope.drawobj.pop, cache = $scope.drawobj.cache, aps = $scope.aps;
+      model.floor = $scope.drawobj.floor;
+      model.longitude = pop.vx;
+      model.latitude = pop.vy;
       console.log('saving ap detail ' + JSON.stringify(model));
-      /* updating details into cache */
-      pouchDB(drawobj.id).get(drawobj.cache.id)
-      .then(function(marker){
-        console.log('updating cache drawing ' + JSON.stringify(model));
-        /* merge marker detail */
-        $.extend(marker.obj, model);
-        return pouchDB(drawobj.id).put(marker);
-      })
-      .then(function(res){
-        console.log('ap cache detail merged ' + res.id);
-        drawobj.cache.id = null;
-        drawobj.cache.rev = null;
-        ctrl.clearModel();
-        snapTools.clearUnsaved(true);
-      })
-      .catch(function(err){
-        console.error('merging marker details ' + err);
+
+      cache.saved = false;
+      cache.data[model.id] = model;
+      for(var i = 0; i<aps.length; i++){
+        if(aps[i].id===model.id){
+          aps.splice(i, 1);
+          break;
+        }
+      }
+      cache.shape.forEach(function(s) {
+        s.saved = true;
       });
+      //TODO remove the ap from aps
+      snapTools.closePop();
+      ctrl.clearModel();
     };
 
     $scope.clearUnsaved = function(){

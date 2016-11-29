@@ -5,3 +5,10 @@
   <input type="button" class="button button-light" value="取消" style="color:#fff"  ng-click="cancel()" ng-show="drawing.state==2"/>
 
 </div>
+
+<div class="button-group" ng-show="drawing.showing">
+
+  <input type="button" class="button" value="显示AP" ng-click="showAP()"  />
+  <input type="button" class="button" value="隐藏AP" ng-click="hideAP()"  />
+
+</div>

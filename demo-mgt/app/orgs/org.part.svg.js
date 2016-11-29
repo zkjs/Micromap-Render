@@ -24,7 +24,7 @@
 
     /* preparing scope data */
     pouchDB('part')
-    .allDocs({include_docs: true, startKey:org._id, endKey: org._id+'.\uffff'})
+    .allDocs({include_docs: true, startkey:org._id, endkey: org._id+'.\uffff'})
     .then(function(res){
       if(res.rows.length===0){
         throw new Error('no data in cache!');
@@ -49,7 +49,7 @@
               return part;
             })
           ).then(function(res){
-            console.log('data loaded from remote server: ' + resp.data.data.length);
+            console.log('parts loaded from remote server: ' + resp.data.data.length);
             $scope.parts = resp.data.data;
             org.parts = $scope.parts.map(function(part){return part._id;});
           }).catch(function(perr){
@@ -59,12 +59,14 @@
       }, function errorCallback(errResp){
         console.error('failed to fetch basic data ' + JSON.stringify(errResp));
       });
-      /* */
-
     });
-    /* scope data and functions */
+
+    /**************
+     * scope data and functions 
+     *************/
 
     $scope.org = org;
+    $scope.drawing = snapTools.drawing;
 
     $scope.add = function(){
       console.log('add part for org ' + org._id);
@@ -81,9 +83,13 @@
         part.index = index;
         $scope.part = part;
         snapTools.show(part.drawables, partid, $scope, 'part');
+        snapTools.showAP();
       });
       $scope.index = index;
     };
+
+    $scope.saveDraw = snapTools.save;
+    $scope.cancelDraw = snapTools.cancel;
     
     /**
      * show draw tools and start drawing objects

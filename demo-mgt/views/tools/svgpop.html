@@ -1,7 +1,15 @@
 <div class="list-block" ng-show="pop.showing"> 
   <ul style="padding:.2rem">
     <li>
-      <input ng-model="model.ap" type="text" placeholder="AP"/>
+     <div class="item-input">
+        <select ng-model="model.id" >
+          <option value="" disabled selected>选择AP</option>
+          <option ng-repeat="ap in aps track by ap._id" value='{{ap.id}}'>{{ap.id}}</option>
+        </select>
+      </div>
+    </li>
+    <li>
+      <input ng-model="model.address" type="text" placeholder="所处区域"/>
     </li>
     <li>
       <input ng-model="model.height" type="number" placeholder="离地高度(米)"/>

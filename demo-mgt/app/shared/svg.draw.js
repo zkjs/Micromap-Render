@@ -10,6 +10,8 @@
   .controller('c_snap', function($scope, $state, snapTools) {
     console.log('preparing snapping tools...');
 
+    $scope.showAP = snapTools.showAP;
+    $scope.hideAP = snapTools.hideAP;
     $scope.point = snapTools.drawPoint;
     $scope.save = snapTools.save;
     $scope.cancel = snapTools.cancel;
@@ -20,14 +22,24 @@
     var paper = null, service = this;
 
     /* draw state */
-    this.drawing = {state: 0, objects:[], ratio: 1.0, vratio: 1.0, bounds: {}, events: {}, pop: {}, cache: {data: []}};
+    this.drawing = {
+      state: 0, /* drawing tools state: 0 - showing, 1 - ready to draw, 2 - drawing */
+      showing: 0, 
+      ratio: 1.0, vratio: 1.0, bounds: {}, /* coords */
+      aps: [], /* current showing ap list, used to control visibility toggling */
+      events: {}, /* keep track of all binded events while drawing */
+      pop: {},  /* pop up properties */
+      cache: { data: {}, saved: false, shape: [] } /* drawing caches */
+    };
     this.coords = null;
     this.draw = function(drawid) {
+      service.drawing.showing = 0;
       service.drawing.state = 1;
     };
 
-    /**
+    /*drawing caches*
      * given screen coords, translate to viewBox coords
+     * TODO handle short and narrow screen 
      */
     function viewBoxCoords(x, y){
       var viewPortWidth = service.paper.node.width.baseVal.value, viewPortHeight = service.paper.node.height.baseVal.value,
@@ -47,7 +59,6 @@
     }
     
     function addAP(e, x, y) {
-      //TODO clear unsaved
       console.log(x + ',' + y);
       var vCoords = viewBoxCoords(x, y), paper = service.paper;
       if(vCoords.inside){
@@ -57,22 +68,20 @@
         //TODO rotate according to the distance to the wall
         var dropin = paper.circle(vCoords.vx, vCoords.vy, CONST.BLE_RANGE);
         dropin.attr({fill: 'rgba(56,72,224,.3)', strokeWidth: 1, stroke: '#333'});
-        service.drawing.cache.data.unshift(dropin);
-        service.drawing.cache.data.unshift(center);
-        //TODO drop popup here: fill ap id and save position for the ap
+        service.drawing.cache.shape.unshift(dropin);
+        service.drawing.cache.shape.unshift(center);
+        /* drop popup here: fill ap id and save position for the ap */
         var drawable = {
           _id: OID().toString(),
           obj: { type: 'AMap.Marker', data: { position: [vCoords.vx, vCoords.vy]} }
         };
-        //TODO cache the point
         pouchDB(service.drawing.id)
         .post(drawable)
         .then(function(res) {
           console.log('cached ' + res.id);
           service.drawing.cache.id = res.id; 
           service.drawing.cache.rev = res.rev;
-          service.showPop(x, y);
-          //TODO open info pop for AP info
+          service.showPop(x, y, vCoords.vx, vCoords.vy);
         });
       }
     }
@@ -134,49 +143,80 @@
     //TODO save drawings in caches to db and post to server
       var elename = service.drawing.elename, 
         scope = service.drawing.scope,
-        part = scope[elename];
+        part = scope[elename],
+        cache = service.drawing.cache;
 
       endDrawing();
-      pouchDB(service.drawing.id).allDocs({include_docs: true})
-      .then(function(obj) {
-        if(!!obj.rows.length){
-            /* concat new drawings */
-            part.drawables = part.drawables.concat(obj.rows.map(function(row){return row.doc.obj;}));
-          }
-          part.objects = part.drawables.length;
-          scope[elename+'s'][part.index] = part;
-          delete part.index;
 
-          /* TODO remove for production */
-          pouchDB(elename).put(part)
-          .then(function(res){
-            if(!!res) {
-              console.log(elename + ' updated : ' + JSON.stringify(res));
-              part._rev = res.rev;
-            }
-            service.drawing.state = 0;
-            service.clear();
-            service.show(part.drawables, part._id, scope, elename);
-          })
-          .catch(function(err){
-            console.error('err: ' + err);
-          });
-
-          /* for production */
-          var partid = part._id.split('.')[1];
-          //TODO update ap positions in remote server
+      pouchDB('ap').allDocs({keys: Object.keys(cache.data), include_docs: true})
+      .then(function(res){
+        console.log('updating local ap detail ');
+        /* merge marker detail */
+        var updatedAPs = res.rows.map(function(row) {
+          return row.doc;
+        });
+        updatedAPs.forEach(function(ap) {
+          $.extend(ap, cache.data[ap._id]);
+          ap.status = 1;
+        });
+        return pouchDB('ap').bulkDocs(updatedAPs);
+      })
+      .then(function(res){
+        console.log('ap cache detail merged');
+        service.drawing.state = 0;
+        service.show();
+        service.showAP();
+      })
+      .catch(function(err){
+        console.error('merging marker details ' + err);
       });
+
+      //TODO update remote models
+      //$http.put(
+      //  CONST.URL_APLIST, cache.data
+      //).then(function successCallback(resp) {
+      //  console.log('parse orgs ' + JSON.stringify(resp));
+      //  if( 
+      //      resp.status === 200 && 
+      //      resp.data.status === 'ok'
+      //  ){
+      //   pouchDB('ap').allDocs({keys: cache.data.map(function(ap){return ap.id;})})
+      //   .then(function(res){
+      //     console.log('updating local ap detail ');
+      //     /* merge marker detail */
+      //     var updatedAPs = res.rows.map(function(row) {
+      //       return row.doc;
+      //     });
+      //     updatedAPs.forEach(function(ap) {
+      //       $.extend(ap, cache.data[ap._id]);
+      //       ap.status = 1;
+      //     });
+      //     return pouchDB('ap').put(updatedAPs);
+      //   })
+      //   .then(function(res){
+      //     console.log('ap cache detail merged');
+      //     ctrl.clearModel();
+      //     snapTools.clearUnsaved();
+      //     snapTools.showAP();
+      //   })
+      //   .catch(function(err){
+      //     //TODO roll back local change if remote update failed
+      //     console.error('merging marker details ' + err);
+      //   });
+      //  }
+      //}, function errorCallback(errResp){
+      //  console.error('failed to fetch basic data ' + JSON.stringify(errResp));
+      //});
     };
 
     this.cancel = function() {
-      //TODO cancel drawings
-      service.clear();
       endDrawing();
       service.show();
+      service.showAP();
     };
 
+    /* clear current drawings and cache */
     this.clear = function() {
-      //TODO clear current drawings and cache
       if(!!service.paper){
         /* destroy zpd to ensure re-initialization */
         service.paper.zpd('destroy');
@@ -185,6 +225,7 @@
       service.clearUnsaved();
       service.clearCache();
       service.drawing.state = 0;
+      service.drawing.aps = [];
     };
 
     this.clearCache = function() {
@@ -195,25 +236,15 @@
       }
     };
 
-    this.clearUnsaved = function(retain) {
+    this.clearUnsaved = function() {
       var cache = service.drawing.cache;
-      if(retain) {
-        cache.data = [];
-      }else{
-        cache.data.forEach(function(c) {
-          c.remove();
-        });
-      }
-      if(!!cache.id){
-        pouchDB(service.drawing.id)
-        .remove({_id: cache.id, _rev: cache.rev})
-        .then(function(deletion){
-          console.log('previous unsaved drawing cleared ' + JSON.stringify(deletion));
-        })
-        .catch(function(err){
-          console.log('clear unsaved err ' + err);
-        });
-      }
+      cache.data = {};
+      cache.saved = true;
+      cache.shape.forEach(function(s) {
+        if(!s.saved){
+          s.remove();
+        }
+      });
       service.closePop();
     };
 
@@ -221,22 +252,24 @@
       service.clear();
     };
 
-    this.showPop = function(x, y) {
+    this.showPop = function(x, y, vx, vy) {
+      var pop = service.drawing.pop;
       $('body').append('<div id="popwrapper" style="position:absolute;width:5.5rem;z-index:1000;left:'+x+'px;top:'+y+'px;"></div>');
-      //TODO create a popup dom and save to drawing
-      //append mappop dom here
       $('#popwrapper').append($('#mappop'));
-      service.drawing.pop.showing = 1;
+      pop.showing = 1;
+      pop.vx = vx;
+      pop.vy = vy;
     };
 
     this.closePop = function() {
-      //TODO move mappop to root dom
-      //remove the popup dom
       $('body').append($('#mappop'));
       service.drawing.pop.showing = 0;
       $('#popwrapper').remove();
     };
 
+    /**
+     * calculate the center of the path
+     */
     function pathCenter(path) {
       var x=0, y=0;
       for(var i=0; i<path.length; i++){
@@ -246,12 +279,19 @@
       return {x: x/path.length, y: y/path.length, width: Math.abs(path[1][0]-path[0][0]), height: Math.abs(path[1][1]-path[2][1])};
     }
 
+    /* show indoor map */
     this.show = function(objs, partid, scope, elename) {
+      if(!!service.paper){
+        service.drawing.zpd = service.paper.zpd('save');
+      }
       service.clear();
+      service.drawing.showing = 1;
       service.drawing.partid = partid || service.drawing.partid;
       service.drawing.scope = scope || service.drawing.scope;
       service.drawing.elename = elename || service.drawing.elename;
       service.drawing.objs = objs || service.drawing.objs;
+      service.drawing.aps = [];
+      service.drawing.floor = service.drawing.scope[service.drawing.elename].floor;
       objs = service.drawing.objs;
       service.drawing.bounds = {width:5040, height:1220};
       service.drawing.id = 'drawing.'+service.drawing.partid;
@@ -266,15 +306,8 @@
       /* view fitting */
       service.drawing.objs.forEach(function(obj){
         switch(obj.type){
-          case 'AMap.Marker':
-            //TODO add to markerToggles
-            var center = paper.circle(obj.data.position[0], obj.data.position[1], 10);
-            center.attr({fill: 'rgb(56,72,224)', strokeWidth: 2, stroke: 'rgb(56,72,224)'});
-            //TODO rotate according to the distance to the wall
-            var dropin = paper.circle(obj.data.position[0], obj.data.position[1], CONST.BLE_RANGE);
-            dropin.attr({fill: 'rgba(112,114,250,.1)', strokeWidth: 1, stroke: '#333'});
-            break; 
-          default:
+          default: /* polygon by default */
+            /* svg path */
             var path = obj.data.path.map(function(p) {
               return p.join(',');
             }).join('L');
@@ -285,14 +318,53 @@
         }
       });
 
-      if(!service.drawing.zpd){
-        paper.zpd();
-      }else{
-        paper.zpd({load: service.drawing.zpd});
-      }
-
       service.paper = paper;
 
+    };
+
+    /* only enable panning/zooming/draggin on trigger */
+    $rootScope.$on('zpd', function(){
+      if(!service.drawing.zpd){
+        service.paper.zpd();
+      }else{
+        service.paper.zpd({load: service.drawing.zpd});
+      }
+    });
+
+    /* show ap points */
+    this.showAP = function() {
+      if(!!service.drawing.aps && !!service.drawing.aps.length){
+        service.drawing.aps.forEach(function(ap) {
+          ap.attr({visibility: 'visible'});
+        });
+        return;
+      }
+      /* get current floor, based on the floor, get ap's at current floor */
+      var floor = service.drawing.floor, paper = service.paper;
+      paper.attr({visibility: 'hidden'});
+      pouchDB('ap')
+      .allDocs({include_docs: true})
+      .then(function(res) {
+        res.rows.filter(function(row) {
+          return row.doc.status===1 && row.doc.floor===floor;
+        }).forEach(function(row) {
+          var obj = row.doc;
+          var center = paper.circle(obj.longitude, obj.latitude, 10);
+          center.attr({fill: 'rgb(56,72,224)', strokeWidth: 2, stroke: 'rgb(56,72,224)'});
+          var dropin = paper.circle(obj.longitude, obj.latitude, CONST.BLE_RANGE);
+          dropin.attr({fill: 'rgba(112,114,250,.1)', strokeWidth: 1, stroke: '#333'});
+          service.drawing.aps.unshift(center);
+          service.drawing.aps.unshift(dropin);
+        });
+        paper.attr({visibility: 'visible'});
+        $rootScope.$emit('zpd');
+      });
+    };
+
+    this.hideAP = function() {
+      service.drawing.aps.forEach(function(ap) {
+        ap.attr({visibility: 'hidden'});
+      });
     };
 
   });

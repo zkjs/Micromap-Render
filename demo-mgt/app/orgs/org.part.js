@@ -32,7 +32,7 @@
 
     /* preparing scope data */
     pouchDB('part')
-    .allDocs({include_docs: true, startKey:org._id, endKey: org._id+'.\uffff'})
+    .allDocs({include_docs: true, startkey:org._id, endkey: org._id+'.\uffff'})
     .then(function(res){
       if(res.rows.length===0){
         throw new Error('no data in cache!');

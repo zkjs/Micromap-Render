@@ -113,6 +113,48 @@ part | string(32) | 所属区域或组织机构
               status: 'ok'
             }
 
+- AP list [GET /ap]
+
+          {
+            status: 'ok',
+            data: [{
+              id: '1',
+              name: '1',
+              floor: 1,
+              height: 2.3,
+              address: '某处',
+              longitude: 1,
+              latitude: 2,
+              status: 1
+            }]
+          }
+
+
+- update AP [PUT /ap]
+
+  - request
+
+          [{
+            id: '1',
+            height: 2.0,
+            floor: 1,
+            longitude: 20,
+            latitude: 30,
+            address: '某处'
+          },{
+            id: '2',
+            height: 2.0,
+            floor: 1,
+            longitude: 20,
+            latitude: 30,
+            address: '某处'
+          }]
+
+  - response
+
+          {
+            status: 'ok'
+          } 
 
 ## Rendering
 

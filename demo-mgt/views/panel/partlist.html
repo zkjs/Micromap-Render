@@ -13,7 +13,7 @@
           <a ng-click="add()" class="button block-inline button-small">新增对象</a>
         </div>
         <div class="col-33 org-button" ng-show="!drawing.state">
-          <a ng-click="draw(part)" href="#" class="button block-inline button-small" ng-class="{'disabled': !part}" >新增绘制</a>
+          <a ng-click="draw(part)" href="#" class="button block-inline button-small" ng-class="{'disabled': !!drawing.state}" >新增绘制</a>
         </div>
         
         <div class="col-33 org-button" style="right: 33%"  ng-show="drawing.state">

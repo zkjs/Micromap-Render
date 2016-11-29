@@ -320,7 +320,7 @@
         updated = false;
       //TODO update for the updated caches
       pouchDB('updating')
-      .allDocs({include_docs: true, startKey:drawid, endKey: drawid+'.\uffff'})
+      .allDocs({include_docs: true, startkey:drawid, endkey: drawid+'.\uffff'})
       .then(function(updates){
         console.log('drawables updated: ' + updates.rows.length);
         if(updates.rows.length===0){

@@ -10,10 +10,26 @@
     'URL_SAVEDRAWING': baseurl + ':partid/drawing',
     'URL_ORGLIST': baseurl + 'org',
     'URL_PARTLIST': baseurl + 'org/:orgid',
+    'URL_APLIST': baseurl + 'ap',
     'BLE_RANGE': 800
   })
 
   .service('localdata', function($http, pouchDB){
+
+    /* prepare ap data */
+    pouchDB('ap').bulkDocs([{
+      _id: '8238102',
+      status: 0
+    },{
+      _id: '82381LT',
+      status: 0
+    },{
+      _id: '21381A',
+      status: 0
+    },{
+      _id: 'a90381M',
+      status: 0
+    }]);
 
     /* prepare root data */
     pouchDB('org').bulkDocs([{
@@ -38,7 +54,7 @@
     }]);
 
     pouchDB('part').bulkDocs([{
-      _id: '1',
+      _id: '1.1',
       title: '一层',
       floor: 1,
       objects: 0,
@@ -52,7 +68,7 @@
         data: { path: [[0,732],[5040,732],[5040,1220],[0, 1220]] }
       }]
     },{
-      _id: '2',
+      _id: '1.2',
       title: '二层妇产科',
       floor: 2,
       objects: 0,
@@ -146,7 +162,7 @@
         data: { path: [[4680,732],[5040,732],[5040,1220],[4680, 1220]] }
       }]
     },{
-      _id: '3',
+      _id: '1.3',
       title: '三层',
       floor: 3,
       objects: 0,
@@ -268,7 +284,7 @@
         data: { path: [[4680,732],[5040,732],[5040,1220],[4680, 1220]] }
       }]
     },{
-      _id: '4',
+      _id: '1.4',
       title: '四层',
       floor: 4,
       objects: 0,
@@ -390,7 +406,7 @@
         data: { path: [[4680,732],[5040,732],[5040,1220],[4680, 1220]] }
       }]
     },{
-      _id: '5',
+      _id: '1.5',
       title: '五层',
       floor: 5,
       objects: 0,
